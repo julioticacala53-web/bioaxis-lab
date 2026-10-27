@@ -1,0 +1,77 @@
+Laboratorio clinico - Sistema de Gestion de Laboratorio Clinico
+
+===========================================================================
+COMO SE USA
+===========================================================================
+
+Doble clic en Laboratorio.exe
+
+No hace falta instalar nada: ni Java, ni base de datos, ni servidor. Todo
+viaja dentro de esta carpeta.
+
+La primera vez tarda algo mas porque crea la base de datos. Mientras arranca
+se ve la pantalla de inicio; es normal que pase de 4 a 8 segundos segun el
+equipo. Se abre directamente en el Dashboard, sin usuario ni contrasena.
+
+===========================================================================
+QUE HAY EN ESTA CARPETA
+===========================================================================
+
+  Laboratorio.exe   El programa. Es lo unico que hay que abrir.
+  app\             La aplicacion y sus librerias.
+  runtime\         Java recortado, solo lo que el programa necesita.
+  datos\           La base de datos. SE CREA AL PRIMER ARRANQUE.
+  exportaciones\   Los PDF y Excel que generes. Se crea al exportar.
+
+IMPORTANTE: hay que copiar la CARPETA ENTERA. Si se copia solo el .exe, no
+funciona, porque busca app\ y runtime\ a su lado.
+
+===========================================================================
+TUS DATOS
+===========================================================================
+
+Todo lo que registres se guarda en datos\laboratorio.db, aqui mismo. Si esta
+carpeta esta en una memoria USB, los datos viajan contigo: puedes abrirla en
+otro equipo con Windows y encontrar tus registros.
+
+Respaldo de pacientes: en Configuracion -> General, "Guardar respaldo CSV"
+guarda en un archivo CSV todos los pacientes atendidos, con sus solicitudes,
+muestras, historial y resultados publicados. No borra nada. Guardalo en un
+USB u otra carpeta segura.
+
+===========================================================================
+IMPRIMIR Y EXPORTAR
+===========================================================================
+
+Los informes de resultados publicados se imprimen desde el boton
+"Vista de impresion", que muestra como quedara en papel. Desde ahi:
+
+  Imprimir     - abre el dialogo de impresion de Windows.
+  Guardar PDF  - deja el archivo en exportaciones\.
+
+Los reportes tambien se exportan a PDF y Excel a la misma carpeta.
+
+===========================================================================
+SI WINDOWS AVISA AL ABRIRLO
+===========================================================================
+
+Windows SmartScreen puede avisar de que es una aplicacion desconocida. Es
+normal: el ejecutable no esta firmado digitalmente, porque firmarlo cuesta
+dinero y esto es un proyecto academico.
+
+  Mas informacion  ->  Ejecutar de todas formas
+
+===========================================================================
+AVISO
+===========================================================================
+
+Los informes de resultados se guardan en la carpeta que elijas al pulsar
+"Guardar PDF": el programa la pregunta cada vez y recuerda la ultima.
+
+El programa NO se conecta a RENIEC, SUSALUD, analizadores, bases de datos
+externas ni servicios de salud. Toda la informacion se guarda unicamente en
+este equipo.
+
+Los informes que genera NO son documentos clinicos y no constituyen un
+diagnostico medico. Los valores fuera del intervalo de referencia solo
+senalan una desviacion.

@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: laboratorio-clinico
+  datasource:
+    # Paquete portatil: la base vive junto al ejecutable, no en el perfil del
+    # usuario, para que los datos viajen con el USB (decision del autor; la
+    # especificacion §12.1 propone %USERPROFILE%\\.laboratorio\\).
+    #
+    # foreign_keys y journal_mode van en la URL porque en SQLite son PRAGMA
+    # por conexion: ponerlos solo en schema.sql afectaria a una sola.
+    url: jdbc:sqlite:${app.data-dir:datos}/laboratorio.db?foreign_keys=on&journal_mode=WAL&busy_timeout=5000
+    hikari:
+      # SQLite admite un solo escritor. Con varias conexiones, una escritura
+      # que coincide con otra falla con SQLITE_BUSY en vez de esperar. Esto es
+      # una aplicacion de escritorio de un solo usuario: una conexion es lo
+      # correcto y elimina la contencion de raiz. busy_timeout en la URL es el
+      # cinturon de seguridad, porque por defecto vale 0 y no espera nada.
+      maximum-pool-size: 1
+      pool-name: laboratorio-sqlite
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: none          # el esquema lo crea db/schema.sql
+    open-in-view: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      continue-on-error: false
+
+server:
+  port: 0                     # puerto libre; el launcher lo lee de local.server.port
+
+app:
+  # Reloj de la aplicacion. "auto" usa la fecha y hora reales del equipo, que
+  # es lo normal: la semilla se genera relativa al dia de hoy, asi que el
+  # dashboard esta vivo cualquier dia. Poner una fecha ISO la fija, util para
+  # reproducir una captura o para que los tests sean deterministas.
+  demo-date: auto
+  # Los PDF y los .xlsx exportados quedan aqui, junto al ejecutable, para que
+  # viajen con el USB igual que datos/.
+  export-dir: exportaciones
+  lab: Laboratorio clínico
+  branch: Laboratorio Central
+
+logging:
+  level:
+    org.hibernate.SQL: info
+  # El lanzador de jpackage y el .exe de launch4j no muestran consola, asi
+  # que sin esto un fallo al arrancar no deja rastro. El archivo va junto a
+  # la base de datos: es lo primero que hay que pedir si algo falla.
+  file:
+    name: ${app.data-dir:datos}/laboratorio.log

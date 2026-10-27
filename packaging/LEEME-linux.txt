@@ -1,0 +1,66 @@
+Laboratorio clinico - Sistema de Gestion de Laboratorio Clinico
+
+===========================================================================
+COMO SE EJECUTA
+===========================================================================
+
+  ./bin/Laboratorio
+
+No hace falta instalar Java ni nada mas: el runtime viaja dentro de esta
+carpeta.
+
+Mientras arranca se ve la pantalla de inicio. La primera vez tarda algo
+mas porque crea la base de datos. Arranca vacio y sin usuario ni contrasena.
+
+===========================================================================
+DONDE SE GUARDAN TUS DATOS
+===========================================================================
+
+La aplicacion lo decide sola:
+
+  - Si puede escribir junto al ejecutable, guarda ahi, en datos/. Es el modo
+    portatil: la carpeta entera se puede llevar en un pendrive.
+  - Si no puede -- por ejemplo instalada desde el RPM en /opt --, guarda en
+    ~/.local/share/Laboratorio/
+
+Para forzar una ruta concreta:
+
+  JAVA_TOOL_OPTIONS=-Dapp.data-dir=/ruta/que/quieras/datos ./bin/Laboratorio
+
+Para empezar de cero, cierra el programa y borra la carpeta de datos.
+
+===========================================================================
+ENTORNO GRAFICO
+===========================================================================
+
+La ventana usa JavaFX, que dibuja con GTK sobre X11. En un escritorio
+Wayland (Sway, GNOME, KDE en modo Wayland) funciona a traves de XWayland,
+que suele estar instalado. Si la ventana no abre, comprueba que XWayland
+este disponible.
+
+===========================================================================
+IMPRIMIR Y EXPORTAR
+===========================================================================
+
+Los informes de resultados publicados se imprimen desde "Vista de impresion",
+que muestra como quedara en papel. Desde ahi:
+
+  Imprimir     - abre el dialogo de impresion del sistema (CUPS).
+  Guardar PDF  - deja el archivo en la carpeta de exportaciones.
+
+Los reportes tambien se exportan a PDF y Excel a esa misma carpeta.
+
+===========================================================================
+AVISO
+===========================================================================
+
+Los informes de resultados se guardan en la carpeta que elijas al pulsar
+"Guardar PDF": el programa la pregunta cada vez y recuerda la ultima.
+
+El programa NO se conecta a RENIEC, SUSALUD, analizadores, bases de datos
+externas ni servicios de salud. Toda la informacion se guarda unicamente en
+este equipo.
+
+Los informes que genera NO son documentos clinicos y no constituyen un
+diagnostico medico. Los valores fuera del intervalo de referencia solo
+senalan una desviacion.

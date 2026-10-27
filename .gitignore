@@ -1,0 +1,21 @@
+# Compilados
+target/
+frontend/node_modules/
+frontend/dist/
+src/main/resources/static/
+frontend/package-lock.json
+
+# Paquetes de escritorio: se publican como Release, no en el repositorio
+dist/
+packaging/.cache/
+
+# Datos y salidas de la propia aplicación
+datos/
+exportaciones/
+*.db
+*.db-shm
+*.db-wal
+
+# Cuaderno de trabajo interno y material de referencia ajeno
+CLAUDE.md
+PushProMaster*.docx
