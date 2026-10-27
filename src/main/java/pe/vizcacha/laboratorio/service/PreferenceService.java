@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.vizcacha.laboratorio.domain.Preference;
 import pe.vizcacha.laboratorio.repo.PreferenceRepository;
 
-/** Lectura y escritura de las preferencias sueltas del equipo. */
 @Service
 public class PreferenceService {
 

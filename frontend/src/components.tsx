@@ -306,13 +306,7 @@ export function Field({
     </label>
   )
 }
-/**
- * Navegación por bloques de las listas largas.
- *
- * Observación del docente: una pantalla con trescientas muestras no se lee
- * ni se revisa. Las listas se sirven de diez en diez y esto es el mando.
- * No se dibuja cuando todo cabe en una página: ahí solo estorbaría.
- */
+
 export function Paginador({
   pagina,
   paginas,
@@ -329,8 +323,7 @@ export function Paginador({
   if (paginas <= 1) return null
   const desde = (pagina - 1) * porPagina + 1
   const hasta = Math.min(pagina * porPagina, total)
-  // Una ventana de cinco números como mucho: con cuarenta páginas, la fila
-  // de botones no puede crecer hasta salirse del panel.
+
   const inicio = Math.max(1, Math.min(pagina - 2, paginas - 4))
   const numeros = Array.from(
     { length: Math.min(5, paginas) },

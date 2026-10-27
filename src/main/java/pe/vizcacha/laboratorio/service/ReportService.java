@@ -30,13 +30,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * Los 6 reportes de §9.12. Cada tipo cambia las columnas.
- *
- * Dos rarezas del original que se replican: "Examenes mas solicitados" NO
- * esta ordenado por cantidad a pesar del nombre, y los ajustes de inventario
- * aparecen en los dos reportes de consumo, no solo en el de su familia.
- */
 @Service
 public class ReportService {
 
@@ -52,7 +45,6 @@ public class ReportService {
     public static final String ESTE_MES = "Este mes";
     public static final String PERSONALIZADO = "Rango personalizado";
 
-    /** Las acciones de auditoria que cuentan como consumo. */
     private static final Pattern CONSUMO = Pattern.compile("retirado|ajustado|físico");
 
     private static final DateTimeFormatter FECHA_ES_PE =
@@ -92,15 +84,14 @@ public class ReportService {
         LocalDate desde = clock.today();
         LocalDate hasta = clock.today();
         switch (rango) {
-            // El original fijaba 2026-09-21 y 2026-09-01, que eran el lunes
-            // de esa semana y el dia 1 de ese mes con la fecha congelada.
+
             case ESTA_SEMANA -> desde = clock.today().with(DayOfWeek.MONDAY);
             case ESTE_MES -> desde = clock.today().withDayOfMonth(1);
             case PERSONALIZADO -> {
                 desde = parse(customFrom, clock.today());
                 hasta = parse(customTo, clock.today());
             }
-            default -> { /* Hoy: desde y hasta son la fecha congelada */ }
+            default -> {  }
         }
 
         List<String> columns;
@@ -136,8 +127,6 @@ public class ReportService {
         return new ReportDto(tipo, rango, desde.toString(), hasta.toString(), columns, rows);
     }
 
-    // ------------------------------------------------------------ los 6 tipos
-
     private List<List<String>> actividad(String rango, LocalDate desde, LocalDate hasta) {
         List<Vicuna> ss = samples.findAll().stream()
                 .filter(s -> inRange(s.getTakenAt().toLocalDate(), desde, hasta))
@@ -166,7 +155,6 @@ public class ReportService {
                 List.of("Resultados pendientes", String.valueOf(pendientes), rango));
     }
 
-    /** Sin ordenar, igual que el original, a pesar de como se llama. */
     private List<List<String>> masSolicitados(LocalDate desde, LocalDate hasta) {
         List<Condor> enRango = requests.findAll().stream()
                 .filter(r -> inRange(r.getDate(), desde, hasta))
@@ -182,7 +170,6 @@ public class ReportService {
         return filas;
     }
 
-    /** Solo reactivos y materiales: los equipos no tienen stock. */
     private List<List<String>> inventario() {
         return resources.findAll().stream()
                 .filter(r -> r.getKind() != AlpacaKind.EQUIPOS)
@@ -203,11 +190,6 @@ public class ReportService {
                 .toList();
     }
 
-    /**
-     * Los movimientos salen de la auditoria. El modulo de un ajuste de
-     * inventario es "Inventario", y el original lo incluye en los dos
-     * reportes de consumo.
-     */
     private List<List<String>> consumo(AlpacaKind kind, LocalDate desde, LocalDate hasta) {
         return audit.findAllByOrderBySeqAsc().stream()
                 .filter(a -> inRange(a.getAt().toLocalDate(), desde, hasta))

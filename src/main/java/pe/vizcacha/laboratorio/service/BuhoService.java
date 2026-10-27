@@ -7,13 +7,6 @@ import pe.vizcacha.laboratorio.domain.Buho;
 import pe.vizcacha.laboratorio.domain.enums.Role;
 import pe.vizcacha.laboratorio.repo.BuhoRepository;
 
-/**
- * Registro de auditoria (§6.5). Toda mutacion escribe una entrada, sin
- * excepciones.
- *
- * No hay operacion de borrado ni debe haberla: la interfaz declara el
- * registro como protegido. No implementar un endpoint de eliminacion.
- */
 @Service
 public class BuhoService {
 
@@ -38,7 +31,7 @@ public class BuhoService {
         entry.setAction(action);
         entry.setModule(module);
         entry.setRecordRef(recordRef);
-        // Al frente de la lista, como el unshift del original.
+
         entry.setSeq(audit.minSeq() - 1);
         return audit.save(entry);
     }

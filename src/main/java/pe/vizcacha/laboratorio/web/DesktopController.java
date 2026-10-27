@@ -23,21 +23,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Lo que la interfaz no puede hacer sola cuando corre dentro de la ventana
- * de escritorio.
- *
- * Imprimir, en concreto: `window.print()` no hace nada en el WebView de
- * JavaFX. La primera version resolvia esto con un puente JavaScript -> Java
- * (`JSObject.setMember`), y **tumbaba la JVM con SIGSEGV** a los pocos
- * segundos de cargar la pagina, en `JNIHandles::resolve_impl`. Mantener una
- * referencia fuerte al objeto del puente no basto.
- *
- * Asi que no hay puente. La interfaz pide por HTTP, como todo lo demas, y
- * Java genera el PDF del informe y lo abre con el visor del sistema, donde
- * el usuario imprime eligiendo impresora y opciones. Funciona igual en
- * Windows y en Linux, no usa JNI y se puede probar.
- */
 @RestController
 @RequestMapping("/api/desktop")
 public class DesktopController {
@@ -185,10 +170,6 @@ public class DesktopController {
                 "cancelled", false);
     }
 
-    /**
-     * Genera el informe en PDF y lo abre con el visor predeterminado. El
-     * dialogo de impresion lo pone el visor.
-     */
     @PostMapping("/print/{sampleId}")
     public ExportResultDto imprimir(@PathVariable String sampleId) {
         ExportResultDto archivo = exportaciones.exportResult(informes.build(sampleId));
@@ -196,16 +177,6 @@ public class DesktopController {
         return archivo;
     }
 
-    /**
-     * Abre el selector de carpetas del sistema y devuelve la elegida.
-     *
-     * Solo tiene sentido dentro de la ventana: en un navegador no hay forma
-     * de pedirle al equipo una ruta, asi que alli la interfaz deja escribirla
-     * a mano. El dialogo es de JavaFX y tiene que abrirse en SU hilo, de ahi
-     * el salto con Platform.runLater y la espera del resultado.
-     *
-     * Si el usuario cancela, devuelve la cadena vacia, que no es un error.
-     */
     @PostMapping("/folder")
     public Map<String, String> elegirCarpeta() {
         if (!Boolean.getBoolean("laboratorio.ventana")) {

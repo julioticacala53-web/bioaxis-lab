@@ -15,14 +15,6 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-/**
- * Las horas de la semilla tienen que ser creibles.
- *
- * Existe por un fallo real: el original clavaba las muestras del dia entre
- * las 08:10 y las 11:40 porque vivia congelado a esa hora. Con el reloj del
- * equipo, abrir la aplicacion a las 08:48 mostraba muestras tomadas a las
- * 11:40 y trazas firmadas a las 15:15. El dashboard dejaba de ser creible.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 class SeedTimesTest {
@@ -75,7 +67,6 @@ class SeedTimesTest {
         }
     }
 
-    /** Las 12 del dia siguen siendo de HOY, repartidas y en orden. */
     @Test
     void lasMuestrasDelDiaSonDeHoyYVanEnOrden() throws Exception {
         String hoy = clock.todayIso();
@@ -85,7 +76,7 @@ class SeedTimesTest {
         for (JsonNode s : snapshot().get("samples")) {
             String id = s.get("id").asText();
             if (id.compareTo("MUE-2026-000013") >= 0) {
-                continue;                       // las historicas son de dias previos
+                continue;
             }
             delDia++;
             assertThat(s.get("date").asText()).startsWith(hoy);
@@ -99,7 +90,6 @@ class SeedTimesTest {
         assertThat(delDia).isEqualTo(12);
     }
 
-    /** Y las historicas siguen en sus seis dias anteriores. */
     @Test
     void lasHistoricasSiguenEnLosSeisDiasAnteriores() throws Exception {
         for (JsonNode s : snapshot().get("samples")) {

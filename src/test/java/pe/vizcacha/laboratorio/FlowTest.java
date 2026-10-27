@@ -23,11 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Entregable de la Fase 4: el guion de demostracion de §10 ejecutado de
- * principio a fin por HTTP, y las validaciones de §6.4 con sus mensajes
- * literales.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -40,8 +35,6 @@ class FlowTest {
     @Autowired private pe.vizcacha.laboratorio.service.SeedService seed;
     @Autowired private AlpacaRepository resources;
     @jakarta.persistence.PersistenceContext private jakarta.persistence.EntityManager em;
-
-    // ------------------------------------------------------------- utilidades
 
     private MvcResult postOk(String url, Object body) throws Exception {
         return mvc.perform(post(url)
@@ -77,7 +70,6 @@ class FlowTest {
         return m;
     }
 
-    /** Los 9 parametros del hemograma, todos dentro de rango. */
     private Map<String, String> hemogramaCompleto() {
         Map<String, String> v = new LinkedHashMap<>();
         v.put("Hemoglobina", "13.8");
@@ -92,28 +84,23 @@ class FlowTest {
         return v;
     }
 
-    // ------------------------------------------- el guion completo de la §10
-
     @Test
     void ejecutaElGuionDeDemostracionDePrincipioAFin() throws Exception {
-        // 1. Registrar paciente
+
         String pacienteId = postOkId("/api/patients", pacienteMaria());
         assertThat(pacienteId).isEqualTo("PAC-000006");
 
-        // 2. Crear solicitud con Hemograma + Glucosa
         String solicitudId = postOkId("/api/requests", Map.of(
                 "patientId", pacienteId,
                 "examIds", List.of("EX-001", "EX-002"),
                 "allowPending", false));
         assertThat(solicitudId).isEqualTo("SOL-000036");
 
-        // 3. La solicitud no queda pendiente: los recursos estan disponibles
         assertThat(pendiente(solicitudId)).isFalse();
 
         int tubosAntes = qty("MAT-001");
         int reactivoAntes = qty("REA-001");
 
-        // 4. Registrar muestra
         String muestraId = postOkId("/api/samples", Map.of(
                 "requestId", solicitudId,
                 "examId", "EX-001",
@@ -121,38 +108,30 @@ class FlowTest {
                 "responsible", "Vicuña Serrana"));
         assertThat(muestraId).isEqualTo("MUE-2026-000043");
 
-        // Descuenta exactamente una unidad de reactivo y una de material
         assertThat(qty("REA-001")).isEqualTo(reactivoAntes - 1);
         assertThat(qty("MAT-001")).isEqualTo(tubosAntes - 1);
 
-        // 5. Estado inicial RECIBIDA, con su primer paso de trazabilidad
         assertThat(estado(muestraId)).isEqualTo("RECIBIDA");
         JsonNode recienCreada = buscar("samples", muestraId);
         assertThat(recienCreada.get("history")).hasSize(1);
         assertThat(recienCreada.get("history").get(0).get("state").asText())
                 .isEqualTo("RECIBIDA");
 
-        // 6. Enviar a analisis
         postOk("/api/samples/" + muestraId + "/state", Map.of("state", "EN ANÁLISIS"));
         assertThat(estado(muestraId)).isEqualTo("EN ANÁLISIS");
 
-        // 7 y 8. Ingresar resultado y enviar a validacion
         postOk("/api/samples/" + muestraId + "/results", Map.of(
                 "values", hemogramaCompleto(),
                 "notes", "Sin hallazgos relevantes.",
                 "submit", true));
         assertThat(estado(muestraId)).isEqualTo("EN VALIDACIÓN");
 
-        // 9. Validar
         postOk("/api/samples/" + muestraId + "/state", Map.of("state", "VALIDADO"));
         assertThat(estado(muestraId)).isEqualTo("VALIDADO");
 
-        // 10. Publicar
         postOk("/api/samples/" + muestraId + "/state", Map.of("state", "PUBLICADA"));
         assertThat(estado(muestraId)).isEqualTo("PUBLICADA");
 
-        // 11. En la ficha del paciente el resultado aparece publicado y con
-        //     sus valores, y la trazabilidad tiene los 5 pasos firmados.
         JsonNode publicada = buscar("samples", muestraId);
         assertThat(publicada.get("patient").asText()).isEqualTo(pacienteId);
         assertThat(publicada.get("state").asText()).isEqualTo("PUBLICADA");
@@ -161,7 +140,6 @@ class FlowTest {
         assertThat(publicada.get("history")).hasSize(5);
         assertThat(publicada.get("history").get(4).get("state").asText()).isEqualTo("PUBLICADA");
 
-        // Toda la secuencia quedo auditada, lo mas nuevo primero.
         mvc.perform(get("/api/database"))
                 .andExpect(jsonPath("$.audit[0].action").value("Resultado publicado"))
                 .andExpect(jsonPath("$.audit[0].record").value(muestraId))
@@ -173,14 +151,6 @@ class FlowTest {
                 .andExpect(jsonPath("$.audit[6].action").value("Paciente creado"));
     }
 
-    /**
-     * El snapshot, decodificado explicitamente como UTF-8.
-     *
-     * getContentAsString() sin charset usa ISO-8859-1 porque la respuesta
-     * declara application/json sin charset -- que es correcto, JSON es UTF-8
-     * por especificacion. Sin esto, "EN ANÁLISIS" se lee "EN ANÃLISIS" y
-     * cualquier comparacion con tildes falla por un motivo que no existe.
-     */
     private JsonNode snapshot() throws Exception {
         byte[] cuerpo = mvc.perform(get("/api/database")).andReturn()
                 .getResponse().getContentAsByteArray();
@@ -208,8 +178,6 @@ class FlowTest {
         return buscar("requests", requestId).get("pending").asBoolean();
     }
 
-    // ------------------------------------------------------ pacientes §6.4.6
-
     @Test
     void rechazaUnDniQueNoTengaOchoDigitos() throws Exception {
         Map<String, Object> m = pacienteMaria();
@@ -223,7 +191,7 @@ class FlowTest {
     @Test
     void rechazaUnDniYaRegistrado() throws Exception {
         Map<String, Object> m = pacienteMaria();
-        m.put("dni", "12345678");          // el de Alpaca Blanca Suri
+        m.put("dni", "12345678");
         post422("/api/patients", m,
                 "Ya existe un paciente con este DNI. Puedes consultarlo en Pacientes.");
     }
@@ -244,8 +212,6 @@ class FlowTest {
                 .andExpect(jsonPath("$.audit[0].action").value("Paciente actualizado"));
     }
 
-    // ---------------------------------------------------- solicitudes §6.4.2
-
     @Test
     void rechazaUnaSolicitudSinPacienteOSinExamenes() throws Exception {
         post422("/api/requests",
@@ -264,15 +230,12 @@ class FlowTest {
                         "allowPending", false),
                 "Confirma el registro pendiente de disponibilidad para continuar.");
 
-        // Con la casilla marcada se acepta, y queda pendiente.
         String id = postOkId("/api/requests",
                 Map.of("patientId", "PAC-000001", "examIds", List.of("EX-005"),
                         "allowPending", true));
 
         assertThat(pendiente(id)).isTrue();
     }
-
-    // -------------------------------------------------------- muestras §6.4.3
 
     @Test
     void noSePuedeRegistrarLaTomaDeUnExamenBloqueado() throws Exception {
@@ -304,11 +267,9 @@ class FlowTest {
                 "Selecciona una solicitud y un examen.");
     }
 
-    /** El descuento se aplica antes de recalcular, asi que dejar un recurso
-     *  en cero marca la solicitud como pendiente en el mismo movimiento. */
     @Test
     void elDescuentoQueAgotaUnRecursoDejaLaSolicitudPendiente() throws Exception {
-        // Deja el reactivo de glucosa en 1: la toma lo pondra en 0.
+
         seed.reset();
         for (int i = 0; i < 11; i++) {
             postOk("/api/samples", Map.of(
@@ -331,34 +292,20 @@ class FlowTest {
                 "allowPending", true));
     }
 
-    // ------------------------------------------------- transiciones §6.4.1/5
-
-    /**
-     * §6.4.1: la disponibilidad se vuelve a comprobar en el momento de enviar
-     * a analisis, no solo al registrar la toma. Una muestra ya registrada
-     * puede quedar bloqueada si su equipo entra en mantenimiento o su
-     * reactivo se agota entre medias.
-     *
-     * El stock se toca por el repositorio porque los movimientos de
-     * inventario son de la Fase 5 y todavia no hay endpoint.
-     */
     @Test
     void noSePuedeIniciarElAnalisisSiElExamenSeBloqueoDespues() throws Exception {
-        // MUE-2026-000001 esta RECIBIDA y es un hemograma (EX-001).
+
         assertThat(estado("MUE-2026-000001")).isEqualTo("RECIBIDA");
 
-        // El reactivo hematologico se agota mientras la muestra espera.
         resources.findById("REA-001").orElseThrow().setQty(0);
 
         post422("/api/samples/MUE-2026-000001/state", Map.of("state", "EN ANÁLISIS"),
                 "No se puede iniciar el análisis: Reactivo hematológico: reactivo sin stock");
 
-        // Y sigue intacta: una transicion rechazada no modifica nada.
         assertThat(estado("MUE-2026-000001")).isEqualTo("RECIBIDA");
         assertThat(buscar("samples", "MUE-2026-000001").get("history")).hasSize(1);
     }
 
-    /** Varios motivos se unen con "; ", en el orden de §6.1. */
     @Test
     void acumulaTodosLosMotivosDeBloqueoSeparadosPorPuntoYComa() throws Exception {
         resources.findById("EQ-001").orElseThrow()
@@ -375,11 +322,10 @@ class FlowTest {
 
     @Test
     void elFlujoEsEstrictamenteLineal() throws Exception {
-        // RECIBIDA no puede saltar a EN VALIDACIÓN
+
         post422("/api/samples/MUE-2026-000001/state", Map.of("state", "EN VALIDACIÓN"),
                 "Transición no válida: una muestra en RECIBIDA solo puede pasar a EN ANÁLISIS.");
 
-        // Una publicada no admite mas transiciones
         post422("/api/samples/MUE-2026-000006/state", Map.of("state", "PUBLICADA"),
                 "La muestra ya está publicada: no admite más transiciones.");
     }
@@ -390,11 +336,9 @@ class FlowTest {
                 "Transición no válida: una muestra en RECIBIDA solo puede pasar a EN ANÁLISIS.");
     }
 
-    // -------------------------------------------------------- resultados §6.4.4
-
     @Test
     void soloSePuedenIngresarResultadosDeUnaMuestraEnAnalisis() throws Exception {
-        // MUE-2026-000001 esta RECIBIDA
+
         post422("/api/samples/MUE-2026-000001/results",
                 Map.of("values", Map.of(), "notes", "", "submit", false),
                 "Selecciona una muestra en análisis para ingresar resultados.");
@@ -402,7 +346,7 @@ class FlowTest {
 
     @Test
     void elBorradorNoMueveElEstadoNiCuentaComoPublicado() throws Exception {
-        // MUE-2026-000002 esta EN ANÁLISIS, formato glucosa
+
         postOk("/api/samples/MUE-2026-000002/results", Map.of(
                 "values", Map.of("Glucosa", "92"),
                 "notes", "Pendiente de repetir.",
@@ -456,8 +400,6 @@ class FlowTest {
                 "Los parámetros numéricos deben contener valores válidos, no negativos.");
     }
 
-    /** Un valor fuera de rango se acepta y se guarda: la aplicacion senala la
-     *  desviacion en la interfaz, no la rechaza ni diagnostica. */
     @Test
     void unValorFueraDeRangoSeGuardaSinRechazarse() throws Exception {
         postOk("/api/samples/MUE-2026-000002/results", Map.of(
@@ -468,7 +410,6 @@ class FlowTest {
                 .andExpect(jsonPath("$.samples[1].results.Glucosa").value("250"));
     }
 
-    /** Las observaciones por parametro viajan con el sufijo _obs. */
     @Test
     void guardaLaObservacionDeUnParametroConSuSufijo() throws Exception {
         Map<String, String> valores = new LinkedHashMap<>();
@@ -483,11 +424,6 @@ class FlowTest {
                 .andExpect(jsonPath("$.samples[1].results['Glucosa_obs']").value("Repetido"));
     }
 
-    /**
-     * Una observación sobre un parámetro FUERA DE RANGO tiene que llegar
-     * hasta el informe impreso. Es el caso que mas importa: el valor
-     * desviado es justo el que lleva anotacion.
-     */
     @Test
     void laObservacionDeUnValorFueraDeRangoLlegaAlInforme() throws Exception {
         Map<String, String> valores = new LinkedHashMap<>();
@@ -505,7 +441,7 @@ class FlowTest {
         assertThat(fila.get("name").asText()).isEqualTo("Glucosa");
         assertThat(fila.get("value").asText()).isEqualTo("250");
         assertThat(fila.get("outOfRange").asBoolean()).isTrue();
-        // Lo que se perdia: la observacion del parametro desviado.
+
         assertThat(fila.get("observation").asText())
                 .isEqualTo("Paciente sin ayuno confirmado");
 
@@ -513,7 +449,6 @@ class FlowTest {
         assertThat(informe.get("outOfRange").get(0).asText()).isEqualTo("Glucosa");
     }
 
-    /** Un parametro sin observacion sale con el guion largo, no vacio. */
     @Test
     void unParametroSinObservacionSaleConGuion() throws Exception {
         JsonNode informe = leerInforme("MUE-2026-000006");
@@ -526,8 +461,6 @@ class FlowTest {
                 .andReturn().getResponse().getContentAsByteArray();
         return json.readTree(new String(cuerpo, StandardCharsets.UTF_8));
     }
-
-    // ------------------------------------------------------- acceso general
 
     @Test
     void lasAccionesSeRegistranComoRegistroLocalSinCuentas() throws Exception {

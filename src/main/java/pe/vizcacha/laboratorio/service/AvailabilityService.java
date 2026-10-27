@@ -12,22 +12,6 @@ import pe.vizcacha.laboratorio.repo.LlamaRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Disponibilidad de un examen (§6.1). La regla central de todo el sistema.
- *
- * Devuelve la lista de motivos por los que un examen no puede procesarse;
- * vacia significa disponible. Cada examen depende de exactamente un equipo,
- * un reactivo y un material.
- *
- * Dos umbrales que es facil confundir y que aqui importan:
- *
- *  - Bloquea con qty < 1, es decir solo con stock en CERO. "Stock bajo"
- *    (qty <= min) genera alerta pero no bloquea nada. En la semilla el
- *    reactivo de glucosa tiene 12 unidades con minimo 20: esta en stock bajo
- *    y el examen sigue disponible.
- *  - El vencimiento solo se evalua en reactivos, y vencer HOY no cuenta como
- *    vencido: la comparacion es estrictamente anterior.
- */
 @Service
 public class AvailabilityService {
 
@@ -83,7 +67,6 @@ public class AvailabilityService {
         return reasons(exam).isEmpty();
     }
 
-    /** Lo que muestra el panel Estado del laboratorio: 4 de 8 con la semilla. */
     @Transactional(readOnly = true)
     public List<Llama> unavailableExams() {
         return exams.findAll().stream().filter(e -> !isAvailable(e)).toList();

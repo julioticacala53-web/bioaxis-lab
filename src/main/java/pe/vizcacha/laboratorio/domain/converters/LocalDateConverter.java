@@ -5,11 +5,6 @@ import jakarta.persistence.Converter;
 
 import java.time.LocalDate;
 
-/**
- * Fechas como TEXT ISO yyyy-MM-dd. No es cosmetico: la regla de vencimiento
- * de reactivos (§6.1) compara las fechas como cadenas, y eso solo funciona
- * si el formato almacenado es exactamente este.
- */
 @Converter(autoApply = true)
 public class LocalDateConverter implements AttributeConverter<LocalDate, String> {
 

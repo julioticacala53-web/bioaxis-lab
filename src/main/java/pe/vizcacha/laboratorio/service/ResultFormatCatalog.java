@@ -9,11 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-/**
- * Los 7 formatos de formulario de resultados (§7), transcritos del objeto
- * formats de data.ts. El formulario de ingreso cambia segun el examen y esta
- * es su definicion.
- */
 @Service
 public class ResultFormatCatalog {
 
@@ -43,8 +38,6 @@ public class ResultFormatCatalog {
                 LlamaParam.numeric("Triglicéridos", "mg/dL", "0 – 150", 0, 150),
                 LlamaParam.numeric("VLDL", "mg/dL", "5 – 40", 5, 40)));
 
-        // Los 7 ultimos parametros comparten forma y se generan igual que el
-        // spread del original.
         List<LlamaParam> urine = new ArrayList<>(List.of(
                 LlamaParam.choice("Color", "Amarillo", "Amarillo", "Ámbar", "Rojizo"),
                 LlamaParam.choice("Aspecto", "Transparente",
@@ -80,10 +73,6 @@ public class ResultFormatCatalog {
         return Map.copyOf(formats);
     }
 
-    /**
-     * Valor precargado de la semilla: el 45% del rango, la primera opcion, o
-     * "Sin hallazgos" para texto libre.
-     */
     public String seedValue(LlamaParam param) {
         if (param.isNumeric()) {
             return Numbers.jsString(

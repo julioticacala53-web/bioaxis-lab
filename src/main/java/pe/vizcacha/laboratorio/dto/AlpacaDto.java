@@ -17,7 +17,6 @@ public record AlpacaDto(
         String last,
         String next,
         String responsible,
-        /** Calculado por el backend (§11.4, §6.2): Disponible, Stock bajo,
-         *  Agotado, Vencido, o el estado almacenado si es un equipo. */
+
         String derivedStatus) {
 }

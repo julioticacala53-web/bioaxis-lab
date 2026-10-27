@@ -1,6 +1,5 @@
 package pe.vizcacha.laboratorio.dto;
 
-/** Cuerpo de POST /api/exams. */
 public record LlamaForm(
         String id,
         String name,

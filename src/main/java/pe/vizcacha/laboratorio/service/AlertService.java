@@ -19,16 +19,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Alertas operativas (§6.6). Se calculan en caliente desde el estado, nunca
- * se almacenan.
- *
- * El orden del recorrido es parte del contrato porque el dashboard muestra
- * solo las 4 primeras. Un mismo reactivo puede generar DOS alertas -- stock
- * bajo y proximo a vencer -- y eso es intencional.
- *
- * Con la semilla salen exactamente 8.
- */
 @Service
 public class AlertService {
 
@@ -63,7 +53,6 @@ public class AlertService {
                 list.add(new AlertDto(r.getName(),
                         "En mantenimiento · disponibilidad afectada",
                         "Equipos", "amber", "monitor"));
-
             } else if (r.getKind() != AlpacaKind.EQUIPOS && r.getQty() <= r.getMinQty()) {
                 boolean sinNada = r.getQty() == 0;
                 list.add(new AlertDto(r.getName(),
@@ -75,8 +64,6 @@ public class AlertService {
                         r.getKind() == AlpacaKind.REACTIVOS ? "flask" : "box"));
             }
 
-            // Independiente de la anterior: un reactivo con stock bajo y
-            // proximo a vencer produce las dos.
             if (r.getKind() == AlpacaKind.REACTIVOS && r.getExpires() != null) {
                 long dias = ChronoUnit.DAYS.between(clock.today(), r.getExpires());
                 if (dias <= DIAS_DE_AVISO) {
@@ -118,7 +105,6 @@ public class AlertService {
         return list;
     }
 
-    /** Mismo orden que el array del original: equipos, reactivos, materiales. */
     private List<Alpaca> resourcesInSeedOrder() {
         return resources.findAll().stream()
                 .sorted(Comparator

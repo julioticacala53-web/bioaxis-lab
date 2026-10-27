@@ -1,25 +1,7 @@
-/**
- * Cliente REST (§11.2, §11.3).
- *
- * Principio de diseño: toda mutación devuelve el snapshot completo y el
- * frontend hace `setDb(respuesta)`. No hay estado derivado en el cliente.
- *
- * Los mensajes de error los manda el backend, que es la autoridad: llegan
- * como 422 con `{ "error": "..." }` y el texto es literal del §6. El
- * frontend solo lo muestra.
- */
-
 import type { Database, ResultReport } from "./data"
 
-/** Un 422: regla de negocio incumplida, con su mensaje literal. */
 export class ApiError extends Error {}
 
-/**
- * El identificador del registro afectado, que el backend manda en una
- * cabecera. Hace falta para el toast `· PAC-000006`, para abrir la
- * trazabilidad de la muestra recién creada y para «Guardar y crear
- * solicitud».
- */
 export type Mutation = { db: Database; recordId: string }
 
 const CABECERA_ID = "X-Record-Id"
@@ -31,7 +13,6 @@ async function parse(response: Response) {
     try {
       mensaje = JSON.parse(texto).error || mensaje
     } catch {
-      /* respuesta sin cuerpo JSON: se queda el genérico */
     }
     if (response.status >= 500) {
       mensaje =
@@ -72,7 +53,7 @@ export type ExportResult = {
 }
 
 export const api = {
-  // ------------------------------------------------------------- lectura
+
   database: () => get<Database>("/api/database"),
 
   report: (type: string, range: string, from?: string, to?: string) => {
@@ -82,7 +63,6 @@ export const api = {
     return get<Report>(`/api/reports?${params}`)
   },
 
-  // ----------------------------------------------------------- mutaciones
   savePatient: (form: Record<string, unknown>) => post("/api/patients", form),
 
   createRequest: (patientId: string, examIds: string[], allowPending: boolean) =>
@@ -127,17 +107,9 @@ export const api = {
   setAppearance: (theme: string) =>
     post("/api/settings/appearance", { theme }),
 
-  // ------------------------------------------------------------- impresión
-  /** El informe de un resultado publicado, para la vista previa. */
   resultReport: (sampleId: string) =>
     get<ResultReport>(`/api/samples/${sampleId}/report`),
 
-  /**
-   * Impresión dentro de la ventana de escritorio: el backend genera el PDF
-   * del informe y lo abre con el visor del sistema, donde se imprime. En el
-   * WebView `window.print()` no hace nada, y el puente JavaScript -> Java
-   * que lo resolvía tumbaba la JVM.
-   */
   printOnDesktop: (sampleId: string) =>
     fetch(`/api/desktop/print/${sampleId}`, {
       method: "POST",
@@ -145,11 +117,6 @@ export const api = {
       body: "{}",
     }).then(parse) as Promise<ExportResult>,
 
-  /**
-   * Abre el selector de carpetas del sistema. Solo existe dentro de la
-   * ventana de escritorio; en un navegador el backend responde 422 y la
-   * interfaz deja escribir la ruta a mano.
-   */
   saveResultOnDesktop: (sampleId: string) =>
     fetch(`/api/desktop/save-result/${sampleId}`, {
       method: "POST",
@@ -224,12 +191,6 @@ export const api = {
       body: "{}",
     }).then(parse) as Promise<{ path: string }>,
 
-  // ---------------------------------------------------------- exportación
-  /**
-   * Genera el archivo en disco y devuelve dónde quedó. No es una descarga:
-   * el WebView de JavaFX no tiene gestor de descargas, así que el archivo se
-   * escribe junto al ejecutable y se avisa de la ruta.
-   */
   exportReport: (
     type: string,
     range: string,

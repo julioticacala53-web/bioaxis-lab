@@ -1,13 +1,9 @@
 <launch4jConfig>
-  <!-- Las rutas son relativas a este archivo, para que la construccion sea
-       reproducible desde cualquier directorio. -->
   <dontWrapJar>true</dontWrapJar>
   <headerType>gui</headerType>
   <jar>app\laboratorio-clinico.jar</jar>
   <outfile>../dist/Laboratorio/Laboratorio.exe</outfile>
   <errTitle>Laboratorio clinico</errTitle>
-  <!-- El directorio de trabajo pasa a ser el del .exe: por eso datos/ y
-       exportaciones/ quedan junto al ejecutable y viajan con el USB. -->
   <chdir>.</chdir>
   <priority>normal</priority>
   <downloadUrl>https://adoptium.net/</downloadUrl>
@@ -23,23 +19,15 @@
   <jre>
     <path>runtime</path>
     <requires64Bit>true</requires64Bit>
-    <!-- Arranque: un solo nivel de compilacion y recolector serie. En una
-         aplicacion de escritorio que vive unos minutos, compilar menos y
-         arrancar antes compensa. -->
     <opt>-XX:TieredStopAtLevel=1</opt>
     <opt>-XX:+UseSerialGC</opt>
     <opt>-Xms64m</opt>
-    <!-- Windows no usa UTF-8 por defecto en consola; los textos llevan
-         tildes y la base guarda estados como "EN ANÁLISIS". -->
     <opt>-Dfile.encoding=UTF-8</opt>
     <opt>-Dsun.stdout.encoding=UTF-8</opt>
     <opt>-Dsun.stderr.encoding=UTF-8</opt>
   </jre>
 
   <splash>
-    <!-- Ruta de COMPILACION, relativa a este archivo: launch4j incrusta la
-         imagen dentro del .exe. No confundir con <jar>, que es una ruta de
-         ejecucion relativa al ejecutable. -->
     <file>splash.bmp</file>
     <waitForWindow>true</waitForWindow>
     <timeout>60</timeout>

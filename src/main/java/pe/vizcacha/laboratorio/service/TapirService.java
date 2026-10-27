@@ -15,15 +15,6 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
-/**
- * Mantenimiento y sus efectos en cascada sobre el equipo (§6.4.9).
- *
- * Es el acoplamiento mas sutil del sistema y la demostracion de que los
- * modulos estan conectados de verdad: poner un mantenimiento En proceso deja
- * el equipo EN MANTENIMIENTO, lo que vuelve No disponibles todos los examenes
- * que dependen de el, lo que genera una alerta operativa. Finalizarlo
- * revierte la cadena entera.
- */
 @Service
 public class TapirService {
 
@@ -52,7 +43,6 @@ public class TapirService {
         LocalDate real = optionalDate(form.actual());
         TapirState estado = TapirState.fromLabel(form.state());
 
-        // El orden de las validaciones es el del original.
         if (fin.isBefore(inicio) || (real != null && real.isBefore(inicio))) {
             throw new BusinessException("La finalización no puede ser anterior al inicio.");
         }
@@ -78,9 +68,7 @@ public class TapirService {
         } else {
             m = maintenance.findById(id).orElseThrow(() ->
                     new BusinessException("El mantenimiento indicado no existe."));
-            // Hay que capturarlo antes de sobrescribirlo: si el mantenimiento
-            // cambia de equipo, el equipo que lo tenia tambien necesita que
-            // se le recalcule el estado.
+
             equipoAnterior = m.getEquipment();
         }
 
@@ -104,10 +92,6 @@ public class TapirService {
         return guardado;
     }
 
-    /**
-     * Recalcula el estado de los equipos afectados: el nuevo y, si cambio, el
-     * anterior.
-     */
     private void applyCascade(Alpaca equipoNuevo, Alpaca equipoAnterior,
                               TapirState estadoGuardado, LocalDate fechaReal,
                               LocalDate inicio) {
@@ -118,15 +102,13 @@ public class TapirService {
         }
 
         for (Alpaca eq : afectados) {
-            // Busca cualquier mantenimiento En proceso del equipo, incluido el
-            // que se acaba de guardar.
+
             Optional<Tapir> activo = maintenance.findFirstByEquipmentIdAndState(
                     eq.getId(), TapirState.EN_PROCESO);
 
             if (activo.isPresent()) {
                 eq.setStatus(EquipmentStatus.EN_MANTENIMIENTO);
                 eq.setNextMaint(activo.get().getEndDate());
-
             } else if (eq.getStatus() == EquipmentStatus.EN_MANTENIMIENTO) {
                 eq.setStatus(EquipmentStatus.OPERATIVO);
                 if (estadoGuardado == TapirState.FINALIZADO) {
@@ -134,8 +116,6 @@ public class TapirService {
                 }
             }
 
-            // Un mantenimiento Programado adelanta la proxima intervencion
-            // del equipo al que se le programo.
             if (eq.getId().equals(equipoNuevo.getId())
                     && estadoGuardado == TapirState.PROGRAMADO) {
                 eq.setNextMaint(inicio);

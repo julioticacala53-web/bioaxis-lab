@@ -13,13 +13,6 @@ import pe.vizcacha.laboratorio.repo.VicunaRepository;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Ingreso de resultados (§6.4.4).
- *
- * La regla que el autor del contrato subrayo: un borrador NO es un resultado
- * publicado, y un resultado en validacion tampoco. Guardar borrador no mueve
- * el estado de la muestra.
- */
 @Service
 public class ResultService {
 
@@ -61,8 +54,6 @@ public class ResultService {
                     "Completa todos los parámetros antes de enviar a validación.");
         }
 
-        // Solo los parametros con rango y con valor se validan como numero:
-        // los de opciones y los de texto libre quedan fuera.
         boolean numeroInvalido = params.stream().anyMatch(p ->
                 p.isNumeric() && !isBlank(valores.get(p.name()))
                         && !isValidNonNegative(valores.get(p.name())));
@@ -113,7 +104,6 @@ public class ResultService {
         return s == null || s.trim().isEmpty();
     }
 
-    /** Equivalente a Number.isFinite(Number(v)) && Number(v) >= 0. */
     private boolean isValidNonNegative(String raw) {
         try {
             double v = Double.parseDouble(raw.trim());

@@ -15,7 +15,5 @@ exportaciones/
 *.db-shm
 *.db-wal
 
-# Cuaderno de trabajo interno y material de referencia ajeno
-CLAUDE.md
-PushProMaster*.docx
-docs/
+docs/anteriores/
+.~lock.*

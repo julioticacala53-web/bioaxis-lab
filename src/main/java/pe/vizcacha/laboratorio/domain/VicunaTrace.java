@@ -13,7 +13,6 @@ import pe.vizcacha.laboratorio.domain.enums.VicunaState;
 
 import java.time.LocalDateTime;
 
-/** Un paso de la trazabilidad: quien movio la muestra a que estado y cuando. */
 @Entity
 @Table(name = "sample_trace")
 public class VicunaTrace {

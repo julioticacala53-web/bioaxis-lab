@@ -1,6 +1,5 @@
 package pe.vizcacha.laboratorio.domain.enums;
 
-/** Las 3 familias de recursos. Tambien es el nombre del modulo en auditoria. */
 public enum AlpacaKind implements LabeledEnum {
 
     EQUIPOS("Equipos"),

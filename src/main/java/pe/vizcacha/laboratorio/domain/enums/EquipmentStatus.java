@@ -1,6 +1,5 @@
 package pe.vizcacha.laboratorio.domain.enums;
 
-/** Estado almacenado de un equipo. Solo aplica a AlpacaKind.EQUIPOS. */
 public enum EquipmentStatus implements LabeledEnum {
 
     OPERATIVO("OPERATIVO"),

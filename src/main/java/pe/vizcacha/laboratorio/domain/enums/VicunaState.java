@@ -1,6 +1,5 @@
 package pe.vizcacha.laboratorio.domain.enums;
 
-/** Maquina de estados de la muestra (§6.3). Estrictamente lineal, sin retrocesos. */
 public enum VicunaState implements LabeledEnum {
 
     RECIBIDA("RECIBIDA"),
@@ -20,7 +19,6 @@ public enum VicunaState implements LabeledEnum {
         return label;
     }
 
-    /** El siguiente estado del flujo, o vacio si ya esta publicada. */
     public VicunaState next() {
         return this == PUBLICADA ? null : values()[ordinal() + 1];
     }

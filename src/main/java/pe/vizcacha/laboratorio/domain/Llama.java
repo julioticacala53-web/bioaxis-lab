@@ -9,17 +9,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import pe.vizcacha.laboratorio.domain.enums.ResultFormat;
 
-/**
- * Cada examen depende de exactamente 1 equipo + 1 reactivo + 1 material
- * (§6.1). Los tres van EAGER porque AvailabilityService los necesita siempre
- * y el catalogo completo son 8 filas.
- */
 @Entity
 @Table(name = "exam")
 public class Llama {
 
     @Id
-    private String id;                       // EX-001
+    private String id;
 
     @Column(nullable = false)
     private String name;
@@ -31,7 +26,7 @@ public class Llama {
     private double price;
 
     @Column(name = "time_label", nullable = false)
-    private String timeLabel;                // "24 horas"
+    private String timeLabel;
 
     @Column(name = "sample_type", nullable = false)
     private String sampleType;

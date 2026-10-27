@@ -13,7 +13,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/** Configuracion general y preferencias de alertas (§6.4.11). */
 @Service
 public class SettingsService {
 
@@ -32,14 +31,6 @@ public class SettingsService {
         this.session = session;
     }
 
-    /**
-     * Cambia la carpeta donde se guardan los PDF y los .xlsx.
-     *
-     * Una ruta vacia devuelve la carpeta de siempre, la que esta junto al
-     * ejecutable. Se comprueba aqui que se pueda escribir de verdad: si el
-     * usuario elige un pendrive que luego quita, el fallo tiene que salir al
-     * configurarla y no media hora despues, al exportar.
-     */
     @Transactional
     public String setExportDir(String ruta) {
         String limpia = ruta == null ? "" : ruta.trim();

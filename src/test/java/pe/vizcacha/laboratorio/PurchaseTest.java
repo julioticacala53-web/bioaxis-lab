@@ -19,13 +19,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * La compra con varias lineas: la entrada masiva al almacen.
- *
- * Nace de una observacion del docente -- registrar una guia de remision de
- * uno en uno no es razonable -- y se comporta como el inventario fisico
- * salvo en lo esencial: aqui la cantidad SUMA, no sustituye.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -108,11 +101,6 @@ class PurchaseTest {
         assertThat(recurso("REA-002").get("expires").asText()).isEqualTo("2027-12-31");
     }
 
-    /**
-     * Comprar lo que faltaba tiene que devolver el recurso a Disponible: es
-     * justo el acoplamiento que hace util la pantalla, porque de ahi depende
-     * que los examenes se puedan procesar.
-     */
     @Test
     void comprarPorEncimaDelMinimoDevuelveElRecursoADisponible() throws Exception {
         assertThat(recurso("MAT-004").get("derivedStatus").asText()).isEqualTo("Agotado");
@@ -126,9 +114,6 @@ class PurchaseTest {
     void cadaLineaDejaSuPropiaEntradaDeAuditoriaConProveedorYDocumento() throws Exception {
         comprar(compra(List.of(linea("MAT-001", "7"))), 200);
 
-        // La auditoria del snapshot viaja con lo mas reciente delante: el
-        // modulo la pinta en el orden del array y el original inserta con
-        // unshift. Lo ultimo registrado es, por tanto, el indice 0.
         JsonNode ultima = snapshot().get("audit").get(0);
         assertThat(ultima.get("action").asText())
                 .contains("Compra recibida")

@@ -21,13 +21,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Entregable de la Fase 3: la lista de comprobaciones que exige §13,
- * verificada una por una.
- *
- * Los metodos que tocan datos van en transaccion y revierten al terminar,
- * asi que la semilla queda intacta para el resto de los tests.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Transactional
 class RulesTest {
@@ -46,8 +39,6 @@ class RulesTest {
     private Alpaca resource(String id) {
         return resources.findById(id).orElseThrow();
     }
-
-    // --------------------------------------------- disponibilidad con la semilla
 
     @Test
     void cuatroExamenesDeLosOchoEstanDisponibles() {
@@ -76,11 +67,6 @@ class RulesTest {
         assertThat(availability.reasons(exam("EX-008"))).containsExactly(motivo);
     }
 
-    /**
-     * El error mas facil de cometer: confundir el umbral de alerta con el de
-     * bloqueo. 12 unidades con minimo 20 es stock bajo, y aun asi el examen
-     * se procesa.
-     */
     @Test
     void elStockBajoAvisaPeroNoBloquea() {
         Alpaca glucosa = resource("REA-002");
@@ -107,8 +93,6 @@ class RulesTest {
                 .containsExactly("Reactivo hematológico: producto vencido");
     }
 
-    /** Vencer hoy no cuenta como vencido: la comparacion es estrictamente
-     *  anterior a la fecha congelada. */
     @Test
     void unReactivoQueVenceHoyTodaviaSirve() {
         resource("REA-001").setExpires(LocalDate.parse("2026-09-24"));
@@ -131,22 +115,17 @@ class RulesTest {
                 .containsExactly("Analizador hematológico: equipo no operativo");
     }
 
-    // ------------------------------------------------------- estado derivado
-
     @Test
     void elOrdenDelEstadoDerivadoEsVencidoAgotadoStockBajo() {
         Alpaca r = resource("REA-003");
 
-        // Vencido gana sobre agotado.
         r.setQty(0);
         r.setExpires(LocalDate.parse("2026-09-01"));
         assertThat(statuses.derived(r)).isEqualTo(AlpacaStatusService.VENCIDO);
 
-        // Agotado gana sobre stock bajo.
         r.setExpires(LocalDate.parse("2027-04-30"));
         assertThat(statuses.derived(r)).isEqualTo(AlpacaStatusService.AGOTADO);
 
-        // Stock bajo gana sobre disponible.
         r.setQty(10);
         r.setMinQty(15);
         assertThat(statuses.derived(r)).isEqualTo(AlpacaStatusService.STOCK_BAJO);
@@ -155,15 +134,12 @@ class RulesTest {
         assertThat(statuses.derived(r)).isEqualTo(AlpacaStatusService.DISPONIBLE);
     }
 
-    /** Un equipo devuelve su estado almacenado, no uno calculado por stock. */
     @Test
     void elEstadoDeUnEquipoEsElQueTieneGuardado() {
         assertThat(statuses.derived(resource("EQ-001"))).isEqualTo("OPERATIVO");
         assertThat(statuses.derived(resource("EQ-003"))).isEqualTo("EN MANTENIMIENTO");
     }
 
-    /** Un material nunca se evalua por vencimiento, aunque la semilla le
-     *  ponga fecha por el default de la factoria. */
     @Test
     void losMaterialesNoVencen() {
         Alpaca material = resource("MAT-005");
@@ -171,8 +147,6 @@ class RulesTest {
 
         assertThat(statuses.derived(material)).isEqualTo(AlpacaStatusService.DISPONIBLE);
     }
-
-    // -------------------------------------------------------------- alertas
 
     @Test
     void laSemillaProduceOchoAlertas() {
@@ -203,8 +177,6 @@ class RulesTest {
         assertThat(hisopos.icon()).isEqualTo("box");
     }
 
-    /** Las 4 primeras son las que caben en el dashboard, asi que su orden
-     *  no es un detalle. */
     @Test
     void lasPrimerasAlertasSonLasDeLosRecursos() {
         List<AlertDto> lista = alerts.alerts();
@@ -225,8 +197,6 @@ class RulesTest {
                 .contains("2 resultados requieren revisión", "5 muestras por procesar",
                         "4 exámenes con recursos afectados");
     }
-
-    // -------------------------------------------------------- acceso general
 
     @Test
     void elAccesoEsGeneralYSeRegistraComoRegistroLocal() {

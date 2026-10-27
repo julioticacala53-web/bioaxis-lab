@@ -1,21 +1,4 @@
 #!/usr/bin/env bash
-#
-# Construye la aplicacion de escritorio para Linux.
-#
-#   ./packaging/empaquetar-linux.sh            # carpeta ejecutable
-#   ./packaging/empaquetar-linux.sh rpm        # ademas, un paquete RPM
-#
-# Aqui si se usa jpackage, que es la herramienta de Java para esto: en Linux
-# genera para Linux sin problema. Para Windows no valdria, porque jpackage no
-# cruza plataformas; de ahi que ese paquete use launch4j.
-#
-# Resultado:
-#   dist/linux/Laboratorio/        carpeta portatil, se ejecuta tal cual
-#   dist/linux/*.rpm              paquete instalable (solo con "rpm")
-#
-# Donde guarda los datos: si se puede escribir junto al ejecutable, ahi
-# mismo (modo portatil). Si no -- por ejemplo instalado en /opt --, en
-# ~/.local/share/Laboratorio/. Lo decide la propia aplicacion.
 
 set -euo pipefail
 
@@ -32,16 +15,12 @@ MODULOS="$MODULOS,java.xml.crypto,jdk.crypto.ec,jdk.unsupported,jdk.zipfs"
 
 paso() { printf '\n\033[1;36m==> %s\033[0m\n' "$1"; }
 
-# ------------------------------------------------------------------ 1. jar
-
 paso "Compilando (nativas de Linux)"
 cd "$RAIZ"
 JAVA_HOME="$JDK" mvn -q -B clean package -DskipTests
 
 JAR="$RAIZ/target/laboratorio-clinico-$VERSION.jar"
 [ -f "$JAR" ] || { echo "No se genero el jar"; exit 1; }
-
-# -------------------------------------------------------------- 2. runtime
 
 if [ ! -x "$CACHE/runtime-linux/bin/java" ]; then
   paso "Recortando el runtime con jlink"
@@ -50,16 +29,10 @@ if [ ! -x "$CACHE/runtime-linux/bin/java" ]; then
     --output "$CACHE/runtime-linux" --strip-debug --no-header-files --no-man-pages
 fi
 
-# ---------------------------------------------- 3. despliegue de la aplicacion
-
 paso "Desplegando el jar"
-# Igual que en Windows: desplegado arranca ~1,5 s antes que empaquetado,
-# porque Spring Boot no tiene que abrir 80 jars anidados.
 rm -rf "$CACHE/app-linux"
 "$JDK/bin/java" -Djarmode=tools -jar "$JAR" extract --destination "$CACHE/app-linux" >/dev/null
 mv "$CACHE/app-linux/laboratorio-clinico-$VERSION.jar" "$CACHE/app-linux/laboratorio-clinico.jar"
-
-# ------------------------------------------------------------- 4. jpackage
 
 OPCIONES=(
   --name Laboratorio

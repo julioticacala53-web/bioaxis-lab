@@ -1,10 +1,5 @@
 package pe.vizcacha.laboratorio.domain.enums;
 
-/**
- * Los 7 formatos de formulario de resultados (§7). La etiqueta va en
- * minuscula porque el frontend la usa como clave para elegir la tabla de
- * parametros.
- */
 public enum ResultFormat implements LabeledEnum {
 
     HEMOGRAM("hemogram"),

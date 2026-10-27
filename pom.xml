@@ -37,8 +37,6 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- SQLiteDialect: Hibernate no lo trae en el nucleo. La version la
-             gestiona el BOM de Spring Boot junto al resto de org.hibernate.orm. -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-community-dialects</artifactId>
@@ -49,11 +47,6 @@
             <version>${sqlite.version}</version>
         </dependency>
 
-        <!--
-          Exportaciones REALES a PDF y Excel. El original las simulaba con un
-          toast; es una mejora pedida explicitamente por el autor, no paridad,
-          y obliga a reescribir los tres toasts que decian "simulada".
-        -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
@@ -65,7 +58,6 @@
             <version>${openpdf.version}</version>
         </dependency>
 
-        <!-- La ventana de escritorio: WebView mostrando la misma UI. -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -84,28 +76,7 @@
         </dependency>
     </dependencies>
 
-    <!--
-      JavaFX va en el classpath del jar, no en el module-path. Produce un
-      aviso al arrancar ("Unsupported JavaFX configuration") y funciona:
-      NativeLibLoader extrae las nativas del jar anidado en tiempo de
-      ejecucion. Asi el runtime recortado de jlink solo lleva modulos del
-      JDK y el empaquetado es mucho mas simple.
-    -->
     <profiles>
-        <!--
-          Empaquetado para Windows.
-
-          La resolucion automatica de OpenJFX solo trae las nativas del
-          sistema que compila (aqui, Linux), asi que el jar no arrancaria en
-          Windows. Este perfil anade las "win" junto a las locales.
-
-          Fijar la propiedad javafx.platform NO sirve: los POM de OpenJFX la
-          definen en sus propios perfiles por sistema operativo y ganan. Las
-          nativas de Linux sobrantes, 48 MB, las borra el script de
-          empaquetado al desplegar el jar.
-
-            mvn -Pwin clean package
-        -->
         <profile>
             <id>win</id>
             <dependencies>
@@ -149,24 +120,10 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <!-- El .exe arranca por aqui: abre la ventana y levanta
-                         Spring detras. Con -Dlaboratorio.sin-ventana=true o en un
-                         entorno sin pantalla, se queda en servicio web. -->
                     <mainClass>pe.vizcacha.laboratorio.DesktopLauncher</mainClass>
                 </configuration>
             </plugin>
 
-            <!--
-              Construccion del frontend (§11.5).
-
-              Va en prepare-package y no en generate-resources a proposito:
-              asi `mvn test` no dispara un build de npm cada vez, pero
-              `mvn package` siempre empaqueta la interfaz. El resultado se
-              copia a target/classes/static, de donde Spring Boot la sirve.
-
-              Usa el npm del sistema (node 22). Para compilar solo el backend:
-                  mvn package -Dfrontend.skip=true
-            -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>

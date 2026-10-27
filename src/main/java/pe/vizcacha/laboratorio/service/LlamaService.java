@@ -9,7 +9,6 @@ import pe.vizcacha.laboratorio.dto.LlamaForm;
 import pe.vizcacha.laboratorio.repo.LlamaRepository;
 import pe.vizcacha.laboratorio.repo.AlpacaRepository;
 
-/** Catalogo de examenes (§6.4.11). Solo administracion puede editarlo. */
 @Service
 public class LlamaService {
 

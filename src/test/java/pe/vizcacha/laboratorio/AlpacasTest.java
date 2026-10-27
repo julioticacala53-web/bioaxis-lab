@@ -21,11 +21,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Entregable de la Fase 5: los acoplamientos entre modulos, verificados por
- * API. Es el segundo guion de la exposicion (§10) y lo que demuestra que el
- * sistema esta conectado de verdad.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -35,8 +30,6 @@ class AlpacasTest {
 
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
-
-    // ------------------------------------------------------------ utilidades
 
     private JsonNode snapshot() throws Exception {
         byte[] cuerpo = mvc.perform(get("/api/database")).andReturn()
@@ -107,53 +100,39 @@ class AlpacasTest {
         return n;
     }
 
-    // ---------------------------- EL ENTREGABLE: la cascada del mantenimiento
-
-    /**
-     * Guion A de §10: mantenimiento En proceso sobre EQ-001, el equipo cambia
-     * solo, el hemograma se bloquea, aparece la alerta, y al finalizarlo todo
-     * vuelve atras.
-     */
     @Test
     void elMantenimientoEnProcesoBloqueaLosExamenesDelEquipoYSeRevierteAlFinalizar()
             throws Exception {
-        // Punto de partida: hemograma disponible, equipo operativo.
+
         assertThat(disponible("EX-001")).isTrue();
         assertThat(buscar("resources", "EQ-001").get("status").asText()).isEqualTo("OPERATIVO");
         assertThat(alertasDe("Analizador hematológico")).isZero();
 
-        // A. Mantenimiento En proceso sobre el analizador hematologico.
         String manId = postOkId("/api/maintenance", mantenimiento(
                 null, "EQ-001", "En proceso", "2026-09-24", "2026-09-28", ""));
         assertThat(manId).isEqualTo("MAN-000002");
 
-        // El equipo cambia solo, y su proxima intervencion toma la fecha de fin.
         JsonNode equipo = buscar("resources", "EQ-001");
         assertThat(equipo.get("status").asText()).isEqualTo("EN MANTENIMIENTO");
         assertThat(equipo.get("derivedStatus").asText()).isEqualTo("EN MANTENIMIENTO");
         assertThat(equipo.get("next").asText()).isEqualTo("2026-09-28");
 
-        // El hemograma se bloquea sin que nadie lo toque, con el motivo exacto.
         assertThat(disponible("EX-001")).isFalse();
         assertThat(motivos("EX-001"))
                 .containsExactly("Analizador hematológico: equipo en mantenimiento");
 
-        // Y aparece la alerta operativa.
         assertThat(alertasDe("Analizador hematológico")).isEqualTo(1);
 
-        // Ya no se puede registrar una toma de hemograma...
         post422("/api/samples",
                 Map.of("requestId", "SOL-000003", "examId", "EX-001",
                         "takenAt", "2026-09-24T15:00", "responsible", "Vicuña Serrana"),
                 "No se puede registrar la toma: Analizador hematológico: equipo en "
                         + "mantenimiento. La solicitud permanece pendiente.");
 
-        // ...ni enviar a analisis una que ya estaba registrada.
         post422("/api/samples/MUE-2026-000001/state", Map.of("state", "EN ANÁLISIS"),
                 "No se puede iniciar el análisis: Analizador hematológico: "
                         + "equipo en mantenimiento");
 
-        // C. Finalizarlo revierte la cadena entera.
         postOkId("/api/maintenance", mantenimiento(
                 manId, "EQ-001", "Finalizado", "2026-09-24", "2026-09-28", "2026-09-26"));
 
@@ -164,10 +143,6 @@ class AlpacasTest {
         assertThat(alertasDe("Analizador hematológico")).isZero();
     }
 
-    /**
-     * El caso que es facil olvidar: si el mantenimiento cambia de equipo, el
-     * que lo tenia antes tambien tiene que recalcularse.
-     */
     @Test
     void cambiarDeEquipoRecalculaTambienElEquipoAnterior() throws Exception {
         String manId = postOkId("/api/maintenance", mantenimiento(
@@ -175,7 +150,6 @@ class AlpacasTest {
         assertThat(buscar("resources", "EQ-001").get("status").asText())
                 .isEqualTo("EN MANTENIMIENTO");
 
-        // El mismo mantenimiento pasa a referirse a EQ-002.
         postOkId("/api/maintenance", mantenimiento(
                 manId, "EQ-002", "En proceso", "2026-09-24", "2026-09-28", ""));
 
@@ -183,8 +157,6 @@ class AlpacasTest {
         assertThat(buscar("resources", "EQ-002").get("status").asText())
                 .isEqualTo("EN MANTENIMIENTO");
 
-        // Y la disponibilidad sigue a los equipos: hemograma vuelve, los de
-        // bioquimica se van.
         assertThat(disponible("EX-001")).isTrue();
         assertThat(disponible("EX-002")).isFalse();
         assertThat(disponible("EX-003")).isFalse();
@@ -197,7 +169,7 @@ class AlpacasTest {
 
         JsonNode equipo = buscar("resources", "EQ-004");
         assertThat(equipo.get("next").asText()).isEqualTo("2026-10-15");
-        // Programado no bloquea: solo En proceso lo hace.
+
         assertThat(equipo.get("status").asText()).isEqualTo("OPERATIVO");
         assertThat(disponible("EX-004")).isTrue();
     }
@@ -218,7 +190,6 @@ class AlpacasTest {
                 "Registra la fecha real de finalización.");
     }
 
-    /** EQ-003 ya tiene MAN-000001 en proceso desde la semilla. */
     @Test
     void unEquipoNoPuedeTenerDosMantenimientosEnProceso() throws Exception {
         post422("/api/maintenance",
@@ -226,7 +197,6 @@ class AlpacasTest {
                 "Este equipo ya tiene un mantenimiento en proceso.");
     }
 
-    /** Editar el mismo mantenimiento sin cambiar de estado no choca consigo. */
     @Test
     void editarElMantenimientoEnProcesoNoChocaConSigoMismo() throws Exception {
         String id = postOkId("/api/maintenance", mantenimiento(
@@ -235,8 +205,6 @@ class AlpacasTest {
         assertThat(id).isEqualTo("MAN-000001");
         assertThat(buscar("resources", "EQ-003").get("next").asText()).isEqualTo("2026-10-05");
     }
-
-    // ---------------------------------------------------- recursos §6.4.10
 
     @Test
     void noSePuedeDeclararOperativoUnEquipoConMantenimientoEnProceso() throws Exception {
@@ -251,12 +219,6 @@ class AlpacasTest {
                 "Finaliza primero el mantenimiento en proceso para habilitar este equipo.");
     }
 
-    /**
-     * El prefijo lo da la familia, pero el correlativo se calcula sobre todos
-     * los recursos: con la semilla el sufijo mas alto es 7, de MAT-007.
-     * Ademas la semilla usa 3 digitos y el generador 6: es una inconsistencia
-     * del original que se replica a proposito.
-     */
     @Test
     void elIdDeUnRecursoNuevoSeCalculaSobreTodasLasFamilias() throws Exception {
         Map<String, Object> eq = new LinkedHashMap<>();
@@ -269,7 +231,6 @@ class AlpacasTest {
         assertThat(postOkId("/api/resources", eq)).isEqualTo("EQ-000008");
         assertThat(primeraAccionAuditada()).isEqualTo("Recurso agregado");
 
-        // El siguiente ya cuenta con el anterior.
         eq.put("kind", "Reactivos");
         eq.put("name", "Reactivo de demostración");
         assertThat(postOkId("/api/resources", eq)).isEqualTo("REA-000009");
@@ -293,9 +254,6 @@ class AlpacasTest {
         assertThat(r.get("derivedStatus").asText()).isEqualTo("Disponible");
     }
 
-    // ----------------------------------------- movimientos de stock §6.4.7
-
-    /** Guion B de §10: vaciar el reactivo de glucosa bloquea su examen. */
     @Test
     void laSalidaQueAgotaUnReactivoBloqueaSuExamenYLaEntradaLoRestablece()
             throws Exception {
@@ -303,7 +261,6 @@ class AlpacasTest {
         assertThat(buscar("resources", "REA-002").get("derivedStatus").asText())
                 .isEqualTo("Stock bajo");
 
-        // Salida de las 12 unidades.
         postOkId("/api/resources/REA-002/movements",
                 Map.of("direction", "OUT", "qty", 12, "notes", "Consumo de demostración"));
 
@@ -315,7 +272,6 @@ class AlpacasTest {
         assertThat(motivos("EX-002"))
                 .containsExactly("Reactivo de glucosa: reactivo sin stock");
 
-        // Reponer lo devuelve a disponible.
         postOkId("/api/resources/REA-002/movements",
                 Map.of("direction", "IN", "qty", 30, "notes", "Reposición de demostración"));
 
@@ -337,14 +293,11 @@ class AlpacasTest {
         post422("/api/resources/REA-002/movements",
                 Map.of("direction", "OUT", "qty", 13, "notes", "x"), literal);
 
-        // Una entrada no tiene techo.
         postOkId("/api/resources/REA-002/movements",
                 Map.of("direction", "IN", "qty", 999, "notes", "Compra anual"));
         assertThat(buscar("resources", "REA-002").get("qty").asInt()).isEqualTo(1011);
     }
 
-    /** La accion auditada lleva cantidad, unidad y motivo: de ahi salen los
-     *  reportes de consumo (§9.12). */
     @Test
     void elMovimientoQuedaAuditadoConCantidadUnidadYMotivo() throws Exception {
         postOkId("/api/resources/REA-002/movements",
@@ -362,8 +315,6 @@ class AlpacasTest {
                 "Reactivo / material ingresado · 50 unidades · Compra");
     }
 
-    // ------------------------------------------ inventario fisico §6.4.8
-
     @Test
     void elInventarioFisicoSoloAjustaLosRecursosContados() throws Exception {
         Map<String, Object> form = new LinkedHashMap<>();
@@ -380,7 +331,7 @@ class AlpacasTest {
 
         assertThat(buscar("resources", "MAT-001").get("qty").asInt()).isEqualTo(20);
         assertThat(buscar("resources", "MAT-005").get("qty").asInt()).isEqualTo(480);
-        // El que iba en blanco no se toca.
+
         assertThat(buscar("resources", "MAT-002").get("qty").asInt()).isEqualTo(150);
     }
 
@@ -424,7 +375,6 @@ class AlpacasTest {
                 "Las cantidades deben ser enteras y no negativas.");
     }
 
-    /** Si una linea es invalida no se aplica ninguna: todo o nada. */
     @Test
     void unaLineaInvalidaCancelaElAjusteCompleto() throws Exception {
         Map<String, Object> form = new LinkedHashMap<>();
@@ -441,8 +391,6 @@ class AlpacasTest {
 
         assertThat(buscar("resources", "MAT-001").get("qty").asInt()).isEqualTo(18);
     }
-
-    // ------------------------------------------- campos calculados §11.4
 
     @Test
     void elSnapshotTraeDisponibilidadEstadoDerivadoYAlertas() throws Exception {

@@ -9,13 +9,6 @@ import pe.vizcacha.laboratorio.repo.AlpacaRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Inventario fisico (§6.4.8).
- *
- * Cada recurso contado deja su propia entrada de auditoria con la diferencia,
- * la fecha, el area, el responsable y la observacion. Los recursos que quedan
- * en blanco no se tocan.
- */
 @Service
 public class InventoryCountService {
 
@@ -72,7 +65,6 @@ public class InventoryCountService {
         return contadas.size();
     }
 
-    /** Equivalente a Number.isInteger(Number(v)) && Number(v) >= 0. */
     private boolean isNonNegativeInteger(String raw) {
         try {
             double v = Double.parseDouble(raw.trim());

@@ -34,7 +34,6 @@ public class InventoryController {
         return ApiResponses.withRecord(snapshots.snapshot(), String.valueOf(ajustados));
     }
 
-    /** Entrada masiva: una compra con varias lineas en un solo formulario. */
     @PostMapping("/purchase")
     public ResponseEntity<DatabaseDto> purchase(@RequestBody PurchaseForm form) {
         int recibidas = purchases.apply(form);

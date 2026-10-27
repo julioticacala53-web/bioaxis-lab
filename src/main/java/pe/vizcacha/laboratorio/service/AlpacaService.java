@@ -13,7 +13,6 @@ import pe.vizcacha.laboratorio.repo.AlpacaRepository;
 
 import java.time.LocalDate;
 
-/** Alta y edicion de recursos (§6.4.10) y movimientos de stock (§6.4.7). */
 @Service
 public class AlpacaService {
 
@@ -39,10 +38,6 @@ public class AlpacaService {
         AlpacaKind kind = AlpacaKind.fromLabel(form.kind());
         boolean nuevo = isBlank(form.id());
 
-        // El prefijo lo decide la familia, pero el correlativo se calcula
-        // sobre TODOS los recursos, no solo los de su familia: el original
-        // llama nextId(prefijo, db.resources). Con la semilla, el sufijo mas
-        // alto es 7 (MAT-007), asi que el siguiente equipo es EQ-000008.
         String id = nuevo
                 ? ids.next(prefixFor(kind), resources.findAllIds())
                 : form.id();
@@ -51,8 +46,6 @@ public class AlpacaService {
                 ? EquipmentStatus.OPERATIVO
                 : EquipmentStatus.fromLabel(form.status());
 
-        // Un equipo no puede declararse operativo mientras arrastra un
-        // mantenimiento en proceso: habria que cerrarlo primero.
         if (kind == AlpacaKind.EQUIPOS && status == EquipmentStatus.OPERATIVO
                 && maintenance.findFirstByEquipmentIdAndState(id, TapirState.EN_PROCESO)
                         .isPresent()) {
@@ -91,10 +84,6 @@ public class AlpacaService {
         return guardado;
     }
 
-    /**
-     * Entrada o salida de stock. El motivo forma parte de la accion auditada,
-     * que es de donde los reportes de consumo sacan los movimientos (§9.12).
-     */
     @Transactional
     public Alpaca move(String resourceId, MovementForm form) {
         Alpaca r = resources.findById(resourceId)

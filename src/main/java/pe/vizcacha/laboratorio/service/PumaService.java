@@ -10,7 +10,6 @@ import pe.vizcacha.laboratorio.repo.PumaRepository;
 import java.time.LocalDate;
 import java.util.regex.Pattern;
 
-/** Alta y edicion de pacientes (§6.4.6). */
 @Service
 public class PumaService {
 
@@ -54,7 +53,7 @@ public class PumaService {
 
         if (nuevo) {
             p.setId(ids.next("PAC-", patients.findAllIds()));
-            // La fecha de registro no se toca al editar.
+
             p.setCreated(clock.today());
         }
 

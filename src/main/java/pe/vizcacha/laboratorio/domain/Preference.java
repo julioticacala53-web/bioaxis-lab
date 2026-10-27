@@ -5,20 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * Preferencias sueltas del equipo, en forma de clave y valor.
- *
- * Existe como tabla aparte y no como columnas de `settings` por un motivo
- * practico: `schema.sql` se ejecuta en cada arranque con CREATE TABLE IF NOT
- * EXISTS, asi que una tabla nueva aparece sola en las bases que ya existian,
- * mientras que una columna nueva necesitaria un ALTER TABLE y SQLite no
- * tiene "ADD COLUMN IF NOT EXISTS".
- */
 @Entity
 @Table(name = "preference")
 public class Preference {
 
-    /** Carpeta donde se guardan los PDF y los .xlsx. Vacio = la de siempre. */
     public static final String CARPETA_EXPORTACIONES = "export-dir";
 
     public static final String CARPETA_RESULTADOS = "results-dir";

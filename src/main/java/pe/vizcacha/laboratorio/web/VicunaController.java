@@ -53,17 +53,11 @@ public class VicunaController {
         return ApiResponses.withRecord(snapshots.snapshot(), movida.getId());
     }
 
-    /**
-     * El informe imprimible de un resultado publicado. Lo usa la vista previa
-     * de impresion; el PDF se genera del mismo objeto, asi que lo que se ve
-     * es lo que sale.
-     */
     @GetMapping("/{id}/report")
     public ResultReportDto report(@PathVariable String id) {
         return reports.build(id);
     }
 
-    /** Guarda ese mismo informe como PDF y devuelve donde quedo. */
     @PostMapping("/{id}/report/pdf")
     public ExportResultDto reportPdf(@PathVariable String id) {
         return exports.exportResult(reports.build(id));

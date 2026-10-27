@@ -114,12 +114,19 @@ recurso que se cree toma el número más alto de todos, no el de su familia.
 
 ## Documentación
 
-En `docs/` están los tres documentos del proyecto:
+En `docs/` están los tres documentos del proyecto, en Word y en PDF:
 
 | Documento | Qué contiene |
 |---|---|
-| **Para ejecutar** | Requisitos, descarga, ejecución del `.exe` y de la versión de Linux, compilación desde el código y errores frecuentes |
-| **Manual de Uso** | El recorrido completo de una atención, pantalla por pantalla, con capturas |
-| **Código fuente** | Las piezas centrales del sistema, comentadas, y el índice de los 169 archivos |
+| **Para ejecutar** | Requisitos del equipo, descarga, ejecución en Windows y en Linux, compilación desde el código, respaldo, actualización y errores frecuentes |
+| **Manual de uso** | Cada pantalla, botón y opción del sistema, con capturas, y el recorrido completo de una atención |
+| **Código fuente** | Arquitectura, piezas centrales del sistema y el índice de todos los archivos |
 
-Los ejecutables ya compilados están en la pestaña **Releases**.
+## Descarga
+
+Los paquetes listos para usar están en la pestaña **Releases**:
+
+- `Laboratorio-windows.zip`: descomprimir y abrir `Laboratorio.exe`.
+- `Laboratorio-linux.zip`: descomprimir y abrir `bin/Laboratorio`.
+
+No necesitan instalar Java ni ningún otro programa.

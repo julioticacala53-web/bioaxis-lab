@@ -38,14 +38,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Datos de demostracion (§8), transcritos de data.ts del prototipo.
- *
- * Se cargan una sola vez, con la base vacia. Nunca pisan lo que el usuario
- * haya registrado despues: eso solo ocurre con reset(), que es explicito.
- *
- * Todos los datos son ficticios.
- */
 @Service
 public class SeedService {
 
@@ -54,10 +46,6 @@ public class SeedService {
     private static final String TECNICA = "Vicuña Serrana";
     private static final String MEDICO = "Dr. Cóndor Andino";
 
-    /**
-     * Cuantas atenciones tuvo cada uno de los seis dias anteriores a hoy
-     * (§8.6). El primero es hoy-6 y el ultimo hoy-1.
-     */
     private static final int[] CONTEOS_HISTORICOS = {3, 4, 0, 6, 8, 9};
 
     private final PumaRepository patients;
@@ -93,28 +81,12 @@ public class SeedService {
         this.clock = clock;
     }
 
-    /**
-     * Que se carga en una base recien creada.
-     *
-     * "minimal" -- lo normal, y el valor por defecto -- deja el laboratorio
-     * vacio: solo la configuracion y un usuario con el que entrar. Es lo que
-     * corresponde a un programa que se instala para usarlo de verdad: los
-     * pacientes, los examenes y los recursos los registra quien lo usa.
-     *
-     * "full" carga el juego de datos de ejemplo. Los tests lo fijan en su
-     * application.properties, porque sus cifras se apoyan en el.
-     *
-     * Desde la aplicacion, el mismo juego se carga a mano con el boton
-     * "Cargar datos de ejemplo" de Configuracion (POST /api/database/reset).
-     */
     @Value("${app.seed:minimal}")
     private String modoDeArranque;
 
     @Transactional
     public void seedIfEmpty() {
-        // La condicion es que no haya ni un usuario: con la carga minima si
-        // hay usuarios pero no hay pacientes ni recursos, y mirar esos dos
-        // haria que la semilla se repitiera en cada arranque.
+
         if (settings.count() > 0) {
             return;
         }
@@ -129,19 +101,12 @@ public class SeedService {
         seedSettings();
     }
 
-    /**
-     * Vacia el laboratorio y lo deja como recien instalado.
-     *
-     * Lo usa POST /api/database/clear, para borrar las pruebas antes de
-     * empezar a trabajar de verdad.
-     */
     @Transactional
     public void clear() {
         borrarTodo();
         seedMinimal();
     }
 
-    /** Carga el juego de datos de ejemplo. Lo usa POST /api/database/reset. */
     @Transactional
     public void reset() {
         borrarTodo();
@@ -149,7 +114,7 @@ public class SeedService {
     }
 
     private void borrarTodo() {
-        samples.deleteAll();          // arrastra trazas y resultados en cascada
+        samples.deleteAll();
         requests.deleteAll();
         maintenance.deleteAll();
         exams.deleteAll();
@@ -173,12 +138,6 @@ public class SeedService {
         seedSettings();
     }
 
-    // ------------------------------------------------------------- recursos
-
-    /**
-     * Defaults de la factoria resource() del original: se aplican a las tres
-     * familias, incluidos lote y vencimiento en materiales, donde no se usan.
-     */
     private Alpaca baseResource(String id, String name, AlpacaKind kind) {
         Alpaca r = new Alpaca();
         r.setId(id);
@@ -271,8 +230,6 @@ public class SeedService {
         return resources.saveAll(todos);
     }
 
-    // -------------------------------------------------------------- examenes
-
     private List<Llama> seedExams(List<Alpaca> recursos) {
         List<Llama> catalogo = List.of(
                 exam("EX-001", "Hemograma completo", "Hematología", 35, "24 horas",
@@ -339,8 +296,6 @@ public class SeedService {
                 .orElseThrow(() -> new IllegalStateException("Recurso ausente en la semilla: " + id));
     }
 
-    // ------------------------------------------------------------- pacientes
-
     private List<Puma> seedPatients() {
         String[][] datos = {
                 {"Alpaca", "Blanca Suri", "12345678", "1994-04-12", "Femenino",
@@ -374,12 +329,6 @@ public class SeedService {
         return patients.saveAll(lista);
     }
 
-    // ----------------------------------------------------------- solicitudes
-
-    /**
-     * Las 5 primeras, una por paciente: todos llevan EX-001 y EX-002, y
-     * ademas Cóndor lleva EX-003 y Taruca EX-004.
-     */
     private List<Condor> seedRequests(List<Puma> pacientes, List<Llama> catalogo) {
         List<Condor> lista = new ArrayList<>();
         for (int i = 0; i < pacientes.size(); i++) {
@@ -409,8 +358,6 @@ public class SeedService {
                 .orElseThrow(() -> new IllegalStateException("Examen ausente: " + id));
     }
 
-    // -------------------------------------------------------- muestras de hoy
-
     private static final String[] EXAMENES_DEL_DIA = {
             "EX-001", "EX-002", "EX-001", "EX-002", "EX-003", "EX-001",
             "EX-002", "EX-001", "EX-002", "EX-004", "EX-001", "EX-002"};
@@ -423,15 +370,6 @@ public class SeedService {
             VicunaState.PUBLICADA, VicunaState.RECIBIDA, VicunaState.VALIDADO,
             VicunaState.EN_VALIDACION, VicunaState.RECIBIDA, VicunaState.RECIBIDA};
 
-    /**
-     * Las muestras del dia se reparten por las horas YA TRANSCURRIDAS, no por
-     * un horario fijo.
-     *
-     * El original las clavaba entre las 08:10 y las 11:40 porque vivia
-     * congelado. Con el reloj real eso deja muestras tomadas en el futuro si
-     * la aplicacion se abre por la manana: a las 08:48 habria uma muestra
-     * registrada a las 11:40, y el dashboard dejaria de ser creible.
-     */
     private void seedTodaySamples(List<Puma> pacientes, List<Condor> solicitudes,
                                   List<Llama> catalogo) {
         LocalDateTime ahora = clock.timestamp();
@@ -439,17 +377,16 @@ public class SeedService {
 
         LocalDateTime fin = ahora.minusMinutes(10);
         if (fin.isBefore(inicioDelDia)) {
-            fin = ahora;                         // recien pasada la medianoche
+            fin = ahora;
         }
         LocalDateTime inicio = LocalDateTime.of(clock.today(), LocalTime.of(8, 0));
         if (inicio.isAfter(fin)) {
-            inicio = fin.minusMinutes(90);       // antes de que abra el laboratorio
+            inicio = fin.minusMinutes(90);
         }
         if (inicio.isBefore(fin.minusHours(6))) {
-            inicio = fin.minusHours(6);          // jornada larga: ultimas 6 horas
+            inicio = fin.minusHours(6);
         }
-        // Nunca antes de hoy: si no, las muestras "de hoy" caerian en el dia
-        // anterior y el dashboard apareceria vacio.
+
         if (inicio.isBefore(inicioDelDia)) {
             inicio = inicioDelDia;
         }
@@ -476,9 +413,6 @@ public class SeedService {
             s.setResponsible(TECNICA);
             s.setNotes("");
 
-            // La trazabilidad se recorta hasta el estado actual y sus pasos se
-            // reparten entre la toma y ahora, de modo que ninguno cae en el
-            // futuro por tarde o temprano que se arranque la aplicacion.
             int pasos = estado.ordinal() + 1;
             long minutosHastaAhora = Math.max(pasos + 1L,
                     Duration.between(tomada, ahora).toMinutes());
@@ -489,7 +423,6 @@ public class SeedService {
                         j > 2 ? MEDICO : TECNICA));
             }
 
-            // Solo las muestras que ya pasaron por el laboratorio traen valores.
             if (estado == VicunaState.EN_VALIDACION || estado == VicunaState.VALIDADO
                     || estado == VicunaState.PUBLICADA) {
                 addSeedResults(s);
@@ -507,13 +440,6 @@ public class SeedService {
         }
     }
 
-    // ------------------------------------------- historico de seis dias atras
-
-    /**
-     * 30 atenciones ya publicadas, repartidas entre el 18 y el 23 de
-     * septiembre. Alimentan el historial de los pacientes y el grafico de
-     * volumen semanal del dashboard.
-     */
     private void seedHistoricalRequestsAndSamples(List<Puma> pacientes, List<Llama> catalogo) {
         List<String> idsSolicitud = new ArrayList<>(requests.findAllIds());
         List<String> idsMuestra = new ArrayList<>(samples.findAllIds());
@@ -523,7 +449,7 @@ public class SeedService {
 
             for (int i = 0; i < CONTEOS_HISTORICOS[offset]; i++) {
                 Puma p = pacientes.get(i % pacientes.size());
-                Llama ex = catalogo.get(i % 2);          // EX-001 o EX-002
+                Llama ex = catalogo.get(i % 2);
 
                 Condor r = new Condor();
                 r.setId(ids.next("SOL-", idsSolicitud));
@@ -558,8 +484,6 @@ public class SeedService {
         }
     }
 
-    // --------------------------------------------------------- mantenimiento
-
     private void seedMaintenance(List<Alpaca> recursos) {
         Tapir m = new Tapir();
         m.setId("MAN-000001");
@@ -575,13 +499,6 @@ public class SeedService {
         maintenance.save(m);
     }
 
-    // --------------------------------------------------------------- auditoria
-
-    /**
-     * En el pasado reciente, no a una hora fija: con el reloj real, un
-     * 12:30 clavado aparecia como una accion hecha en el futuro cuando la
-     * aplicacion se abria por la manana.
-     */
     private void seedAudit() {
         LocalDateTime ahora = clock.timestamp();
         audit.saveAll(List.of(
@@ -609,8 +526,6 @@ public class SeedService {
         a.setSeq(seq);
         return a;
     }
-
-    // ------------------------------------------------------------ configuracion
 
     private void seedSettings() {
         Settings s = new Settings();

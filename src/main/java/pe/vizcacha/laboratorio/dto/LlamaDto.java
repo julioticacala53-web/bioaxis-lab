@@ -16,12 +16,7 @@ public record LlamaDto(
         String material,
         boolean enabled,
         String format,
-        /**
-         * Calculados por el backend (§11.4). El original los recalculaba en
-         * el render con availability(); aqui vienen resueltos para que la
-         * regla viva en un solo sitio y no se desincronicen dos
-         * implementaciones de lo mas importante del sistema.
-         */
+
         boolean available,
         List<String> reasons) {
 }

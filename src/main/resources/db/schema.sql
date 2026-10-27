@@ -1,12 +1,12 @@
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS patient (
-  id          TEXT PRIMARY KEY,              -- PAC-000001
-  dni         TEXT NOT NULL UNIQUE,          -- 8 dígitos
+  id          TEXT PRIMARY KEY,
+  dni         TEXT NOT NULL UNIQUE,
   first_name  TEXT NOT NULL,
   last_name   TEXT NOT NULL,
-  birth       TEXT NOT NULL,                 -- ISO yyyy-MM-dd
-  sex         TEXT NOT NULL,                 -- Femenino | Masculino | Otro
+  birth       TEXT NOT NULL,
+  sex         TEXT NOT NULL,
   phone       TEXT,
   email       TEXT,
   address     TEXT,
@@ -15,28 +15,28 @@ CREATE TABLE IF NOT EXISTS patient (
 );
 
 CREATE TABLE IF NOT EXISTS resource (
-  id          TEXT PRIMARY KEY,              -- EQ-001 | REA-001 | MAT-001
-  kind        TEXT NOT NULL,                 -- Equipos | Reactivos | Materiales
+  id          TEXT PRIMARY KEY,
+  kind        TEXT NOT NULL,
   name        TEXT NOT NULL,
   brand       TEXT, model TEXT, serial TEXT,
   area        TEXT NOT NULL,
-  status      TEXT NOT NULL,                 -- solo Equipos: OPERATIVO | EN MANTENIMIENTO
-                                             --               FUERA DE SERVICIO | BAJA
+  status      TEXT NOT NULL,
+
   qty         INTEGER NOT NULL DEFAULT 0,
   min_qty     INTEGER NOT NULL DEFAULT 0,
   unit        TEXT NOT NULL DEFAULT 'unidades',
   lot         TEXT,
-  expires     TEXT,                          -- solo Reactivos
+  expires     TEXT,
   last_maint  TEXT, next_maint TEXT,
   responsible TEXT
 );
 
 CREATE TABLE IF NOT EXISTS exam (
-  id          TEXT PRIMARY KEY,              -- EX-001
+  id          TEXT PRIMARY KEY,
   name        TEXT NOT NULL,
   category    TEXT NOT NULL,
   price       REAL NOT NULL,
-  time_label  TEXT NOT NULL,                 -- "24 horas"
+  time_label  TEXT NOT NULL,
   sample_type TEXT NOT NULL,
   volume      TEXT NOT NULL,
   prep        TEXT,
@@ -44,11 +44,11 @@ CREATE TABLE IF NOT EXISTS exam (
   reagent_id   TEXT NOT NULL REFERENCES resource(id),
   material_id  TEXT NOT NULL REFERENCES resource(id),
   enabled     INTEGER NOT NULL DEFAULT 1,
-  format      TEXT NOT NULL                  -- hemogram|glucose|lipid|urine|
-);                                           -- microbiology|tsh|t4
+  format      TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS lab_request (
-  id          TEXT PRIMARY KEY,              -- SOL-000001
+  id          TEXT PRIMARY KEY,
   patient_id  TEXT NOT NULL REFERENCES patient(id),
   date        TEXT NOT NULL,
   pending     INTEGER NOT NULL DEFAULT 0
@@ -61,16 +61,16 @@ CREATE TABLE IF NOT EXISTS request_exam (
 );
 
 CREATE TABLE IF NOT EXISTS sample (
-  id          TEXT PRIMARY KEY,              -- MUE-2026-000001
+  id          TEXT PRIMARY KEY,
   patient_id  TEXT NOT NULL REFERENCES patient(id),
   request_id  TEXT NOT NULL REFERENCES lab_request(id),
   exam_id     TEXT NOT NULL REFERENCES exam(id),
-  taken_at    TEXT NOT NULL,                 -- yyyy-MM-ddTHH:mm:ss
-  state       TEXT NOT NULL,                 -- RECIBIDA | EN ANÁLISIS | EN VALIDACIÓN
-                                             -- | VALIDADO | PUBLICADA
+  taken_at    TEXT NOT NULL,
+  state       TEXT NOT NULL,
+
   responsible TEXT NOT NULL,
   notes       TEXT,
-  UNIQUE (request_id, exam_id)               -- regla §6.4.3, aplicada en BD
+  UNIQUE (request_id, exam_id)
 );
 
 CREATE TABLE IF NOT EXISTS sample_trace (
@@ -92,38 +92,32 @@ CREATE TABLE IF NOT EXISTS sample_result (
 );
 
 CREATE TABLE IF NOT EXISTS maintenance (
-  id           TEXT PRIMARY KEY,             -- MAN-000001
+  id           TEXT PRIMARY KEY,
   equipment_id TEXT NOT NULL REFERENCES resource(id),
-  type         TEXT NOT NULL,                -- Preventivo | Correctivo
+  type         TEXT NOT NULL,
   start_date   TEXT NOT NULL,
-  end_date     TEXT NOT NULL,                -- estimada
-  actual_date  TEXT,                         -- real
+  end_date     TEXT NOT NULL,
+  actual_date  TEXT,
   responsible  TEXT NOT NULL,
   provider     TEXT,
   description  TEXT,
-  state        TEXT NOT NULL                 -- Programado|En proceso|Finalizado|Cancelado
+  state        TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS audit_entry (
-  id          TEXT PRIMARY KEY,              -- AUD-000001
+  id          TEXT PRIMARY KEY,
   at          TEXT NOT NULL,
   user_name   TEXT NOT NULL,
   role        TEXT NOT NULL,
   action      TEXT NOT NULL,
   module      TEXT NOT NULL,
   record_ref  TEXT NOT NULL,
-  -- Orden de la lista, no presente en el DDL de la especificacion.
-  -- El original no ordena la auditoria por fecha: la muestra en orden de
-  -- array e inserta lo nuevo con unshift. Ordenar por fecha fallaria en una
-  -- demostracion por la manana, porque una accion a las 09:00 quedaria por
-  -- debajo de las entradas de la semilla (10:20, 11:05, 12:30) en vez de
-  -- arriba. La semilla ocupa 0,1,2 y cada entrada nueva toma min-1, asi que
-  -- ordenar por seq ascendente reproduce el array del original exactamente.
+
   seq         INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS app_user (
-  id     TEXT PRIMARY KEY,                   -- USR-001
+  id     TEXT PRIMARY KEY,
   name   TEXT NOT NULL,
   email  TEXT NOT NULL,
   role   TEXT NOT NULL,
@@ -137,9 +131,6 @@ CREATE TABLE IF NOT EXISTS settings (
   notifications INTEGER NOT NULL DEFAULT 1
 );
 
--- Preferencias sueltas del equipo (por ahora, la carpeta de exportaciones).
--- Tabla aparte y no columnas de settings: asi aparece sola en las bases que
--- ya existian, porque este archivo corre entero en cada arranque.
 CREATE TABLE IF NOT EXISTS preference (
   name  TEXT PRIMARY KEY,
   value TEXT NOT NULL

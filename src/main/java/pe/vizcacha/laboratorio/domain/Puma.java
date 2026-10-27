@@ -13,10 +13,10 @@ import java.time.Period;
 public class Puma {
 
     @Id
-    private String id;                       // PAC-000001
+    private String id;
 
     @Column(nullable = false, unique = true)
-    private String dni;                      // 8 digitos
+    private String dni;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -28,7 +28,7 @@ public class Puma {
     private LocalDate birth;
 
     @Column(nullable = false)
-    private String sex;                      // Femenino | Masculino | Otro
+    private String sex;
 
     private String phone;
     private String email;
@@ -38,10 +38,6 @@ public class Puma {
     @Column(nullable = false)
     private LocalDate created;
 
-    /**
-     * La edad no se almacena (§6.4.6): se calcula contra la fecha congelada,
-     * restando un ano si todavia no ha cumplido.
-     */
     public int age(LocalDate reference) {
         return Period.between(birth, reference).getYears();
     }

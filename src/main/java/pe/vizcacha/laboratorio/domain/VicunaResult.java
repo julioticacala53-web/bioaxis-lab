@@ -11,11 +11,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-/**
- * Un parametro medido. En el original los valores y sus observaciones
- * conviven en un mismo mapa plano con el sufijo "_obs"; aqui se normalizan en
- * dos columnas, y el snapshot vuelve a armar el mapa plano (§4.3).
- */
 @Entity
 @Table(name = "sample_result",
        uniqueConstraints = @UniqueConstraint(columnNames = {"sample_id", "param_name"}))

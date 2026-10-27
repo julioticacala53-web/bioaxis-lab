@@ -15,19 +15,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * La tabla se llama lab_request y no request porque "request" da problemas
- * como identificador en varios motores; el nombre esta fijado en §4.2.
- *
- * El orden de los examenes se conserva en request_exam.position: es el orden
- * en que se eligieron en el modal y el que se muestra en la tabla.
- */
 @Entity
 @Table(name = "lab_request")
 public class Condor {
 
     @Id
-    private String id;                       // SOL-000001
+    private String id;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "patient_id", nullable = false)
@@ -36,7 +29,6 @@ public class Condor {
     @Column(nullable = false)
     private LocalDate date;
 
-    /** Pendiente de disponibilidad: algun examen de la solicitud esta bloqueado. */
     @Column(nullable = false)
     private boolean pending;
 

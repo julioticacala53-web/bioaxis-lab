@@ -20,14 +20,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * La carpeta de exportaciones elegida por el usuario, y el punto de partida
- * de la base de datos.
- *
- * Las dos cosas son observaciones del docente: los PDF tienen que poder ir a
- * donde quiera quien los genera, y el programa no puede arrancar lleno de
- * datos de ejemplo cuando ya esta terminado.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -79,11 +71,6 @@ class PreferencesTest {
                 .endsWith("exportaciones");
     }
 
-    /**
-     * Si el usuario elige un sitio donde no se puede escribir, el fallo tiene
-     * que salir al configurarlo. Media hora despues, al exportar un informe,
-     * ya no sirve de nada.
-     */
     @Test
     void unaCarpetaEnLaQueNoSePuedeEscribirSeRechazaAlConfigurarla() throws Exception {
         carpeta("/proc/laboratorio-no-se-puede", 422);

@@ -10,19 +10,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * La FORMA del JSON de los formatos, no solo su contenido.
- *
- * Existe por un fallo real: el frontend decide que campo dibujar con
- * `param.options ?` y `param.min !== undefined`, igual que el original. En
- * JavaScript un array vacio es truthy y null no es undefined, asi que con
- * `options: []` todos los parametros numericos salian como desplegables
- * vacios -- imposible ingresar un resultado -- y con `min: null` los campos
- * de texto libre salian como campos numericos.
- *
- * Las claves ausentes son parte del contrato, no un detalle de
- * serializacion.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 class FormatsTest {
@@ -30,7 +17,6 @@ class FormatsTest {
     @Autowired
     private MockMvc mvc;
 
-    /** Un parametro con rango: min y max presentes, options ausente. */
     @Test
     void unParametroNumericoNoLlevaListaDeOpciones() throws Exception {
         mvc.perform(get("/api/database"))
@@ -41,7 +27,6 @@ class FormatsTest {
                 .andExpect(jsonPath("$.formats.lipid[0].options").doesNotExist());
     }
 
-    /** min = 0 es un rango real y NO puede omitirse. */
     @Test
     void unMinimoDeCeroSeMantiene() throws Exception {
         mvc.perform(get("/api/database"))
@@ -51,7 +36,6 @@ class FormatsTest {
                 .andExpect(jsonPath("$.formats.lipid[2].min").value(0.0));
     }
 
-    /** Un parametro de opciones: options presente, min y max ausentes. */
     @Test
     void unParametroDeOpcionesNoLlevaRango() throws Exception {
         mvc.perform(get("/api/database"))
@@ -62,7 +46,6 @@ class FormatsTest {
                 .andExpect(jsonPath("$.formats.urine[0].max").doesNotExist());
     }
 
-    /** Un parametro de texto libre: ni rango ni opciones. */
     @Test
     void unParametroDeTextoLibreNoLlevaNiRangoNiOpciones() throws Exception {
         mvc.perform(get("/api/database"))
@@ -70,12 +53,11 @@ class FormatsTest {
                 .andExpect(jsonPath("$.formats.microbiology[0].min").doesNotExist())
                 .andExpect(jsonPath("$.formats.microbiology[0].max").doesNotExist())
                 .andExpect(jsonPath("$.formats.microbiology[0].options").doesNotExist())
-                // El de observaciones tambien: fue el que delato el fallo.
+
                 .andExpect(jsonPath("$.formats.microbiology[4].name").value("Observaciones"))
                 .andExpect(jsonPath("$.formats.microbiology[4].options").doesNotExist());
     }
 
-    /** Los metodos de conveniencia del record no viajan en el JSON. */
     @Test
     void noSeFiltranCamposQueElOriginalNoTiene() throws Exception {
         mvc.perform(get("/api/database"))
@@ -84,7 +66,6 @@ class FormatsTest {
                 .andExpect(jsonPath("$.formats.urine[0].numeric").doesNotExist());
     }
 
-    /** Los 7 formatos, con su numero de parametros. */
     @Test
     void estanLosSieteFormatosCompletos() throws Exception {
         mvc.perform(get("/api/database"))

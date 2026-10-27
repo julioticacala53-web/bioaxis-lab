@@ -1,6 +1,5 @@
 package pe.vizcacha.laboratorio.domain.enums;
 
-/** Los 6 roles de demostracion (§6.7). Las etiquetas aparecen en pantalla. */
 public enum Role implements LabeledEnum {
 
     DIRECTOR("Director"),

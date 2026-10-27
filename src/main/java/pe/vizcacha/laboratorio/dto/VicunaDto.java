@@ -11,7 +11,7 @@ public record VicunaDto(
         String date,
         String state,
         String responsible,
-        /** Mapa plano con el sufijo _obs para las observaciones (§4.3). */
+
         Map<String, String> results,
         String notes,
         List<TraceDto> history) {

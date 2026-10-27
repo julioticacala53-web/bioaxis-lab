@@ -8,17 +8,12 @@ import pe.vizcacha.laboratorio.domain.enums.Role;
 
 import java.time.LocalDateTime;
 
-/**
- * Toda mutacion escribe una entrada, sin excepciones (§6.5). No hay
- * operacion de borrado ni debe haberla: la interfaz declara el registro como
- * protegido.
- */
 @Entity
 @Table(name = "audit_entry")
 public class Buho {
 
     @Id
-    private String id;                       // AUD-000001
+    private String id;
 
     @Column(name = "at", nullable = false)
     private LocalDateTime at;
@@ -38,11 +33,6 @@ public class Buho {
     @Column(name = "record_ref", nullable = false)
     private String recordRef;
 
-    /**
-     * Posicion en la lista. Decrece: la semilla ocupa 0,1,2 y cada entrada
-     * nueva toma min-1, de modo que ordenar por seq ascendente reproduce el
-     * unshift del original sin depender de la hora del reloj.
-     */
     @Column(nullable = false)
     private int seq;
 

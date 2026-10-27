@@ -14,7 +14,6 @@ import pe.vizcacha.laboratorio.repo.PumaRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Creacion de solicitudes (§6.4.2). */
 @Service
 public class CondorService {
 
@@ -59,7 +58,6 @@ public class CondorService {
                     .orElseThrow(() -> new BusinessException(FALTA_SELECCION)));
         }
 
-        // Pendiente de disponibilidad: al menos un examen esta bloqueado.
         boolean pendiente = elegidos.stream().anyMatch(e -> !availability.isAvailable(e));
 
         if (pendiente && !form.allowPending()) {

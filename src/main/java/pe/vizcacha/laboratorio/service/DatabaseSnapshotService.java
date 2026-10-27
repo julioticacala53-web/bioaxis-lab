@@ -40,22 +40,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Arma el JSON completo que espera el frontend (§5.2).
- *
- * El orden importa: el original lee estas listas en orden de array y lo
- * muestra tal cual, asi que aqui se reproduce. Para la mayoria basta ordenar
- * por identificador, que es correlativo y con ceros a la izquierda; la
- * excepcion son los recursos, donde el array original va por familias
- * (equipos, reactivos, materiales) y no alfabeticamente.
- */
 @Service
 public class DatabaseSnapshotService {
 
     private static final DateTimeFormatter ISO_SEGUNDOS =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
-    /** Sufijo con el que el frontend lee la observacion de un parametro. */
     private static final String SUFIJO_OBSERVACION = "_obs";
 
     private final PumaRepository patients;
@@ -124,7 +114,6 @@ public class DatabaseSnapshotService {
                 session.userName());
     }
 
-    /** Con la etiqueta como clave: el frontend busca por exam.format. */
     private java.util.Map<String, List<pe.vizcacha.laboratorio.service.LlamaParam>> formatsByLabel() {
         java.util.Map<String, List<pe.vizcacha.laboratorio.service.LlamaParam>> porEtiqueta =
                 new java.util.LinkedHashMap<>();
@@ -139,11 +128,6 @@ public class DatabaseSnapshotService {
         return Comparator.comparing(id);
     }
 
-    /**
-     * Equipos, luego reactivos, luego materiales, y dentro de cada familia por
-     * identificador. Ordenar solo por id daria EQ, MAT, REA, que no es el
-     * orden del original.
-     */
     private List<AlpacaDto> resourcesInSeedOrder() {
         Comparator<Alpaca> orden = Comparator
                 .comparingInt((Alpaca r) -> switch (r.getKind()) {
@@ -155,8 +139,6 @@ public class DatabaseSnapshotService {
 
         return resources.findAll().stream().sorted(orden).map(this::toDto).toList();
     }
-
-    // ----------------------------------------------------------- conversiones
 
     private PumaDto toDto(Puma p) {
         return new PumaDto(p.getId(), p.getDni(), p.getFirstName(), p.getLastName(),
@@ -195,11 +177,6 @@ public class DatabaseSnapshotService {
                 s.getTraces().stream().map(this::toDto).toList());
     }
 
-    /**
-     * Reconstruye el mapa plano del original (§4.3): el valor bajo el nombre
-     * del parametro y la observacion bajo el mismo nombre con _obs. El
-     * componente de resultados lee exactamente esas claves.
-     */
     private Map<String, String> flattenResults(Vicuna s) {
         Map<String, String> plano = new LinkedHashMap<>();
         for (VicunaResult r : s.getResults()) {

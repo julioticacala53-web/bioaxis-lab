@@ -38,10 +38,6 @@ public class ReportController {
         return reports.build(type, range, from, to);
     }
 
-    /**
-     * Genera el archivo y devuelve donde quedo. No sirve el archivo por HTTP a
-     * proposito: ver ExportService.
-     */
     @PostMapping("/export")
     public ExportResultDto export(@RequestBody ExportForm form) {
         return exports.export(reporte(form), form.format(), lab(), sede());

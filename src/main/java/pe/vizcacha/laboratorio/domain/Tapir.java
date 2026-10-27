@@ -16,23 +16,21 @@ import java.time.LocalDate;
 public class Tapir {
 
     @Id
-    private String id;                       // MAN-000001
+    private String id;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "equipment_id", nullable = false)
     private Alpaca equipment;
 
     @Column(nullable = false)
-    private String type;                     // Preventivo | Correctivo
+    private String type;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    /** Finalizacion estimada. */
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    /** Finalizacion real; vacia mientras no este finalizado. */
     @Column(name = "actual_date")
     private LocalDate actualDate;
 

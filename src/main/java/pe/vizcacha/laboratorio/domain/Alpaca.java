@@ -9,17 +9,12 @@ import pe.vizcacha.laboratorio.domain.enums.AlpacaKind;
 
 import java.time.LocalDate;
 
-/**
- * Las tres familias de recursos viven en una sola tabla, igual que en el
- * original: equipos usan status / last / next, y reactivos y materiales usan
- * qty / min / unit. Los reactivos son los unicos con fecha de vencimiento.
- */
 @Entity
 @Table(name = "resource")
 public class Alpaca {
 
     @Id
-    private String id;                       // EQ-001 | REA-001 | MAT-001
+    private String id;
 
     @Column(nullable = false)
     private AlpacaKind kind;
@@ -34,7 +29,7 @@ public class Alpaca {
     @Column(nullable = false)
     private String area;
 
-    private EquipmentStatus status;          // solo Equipos
+    private EquipmentStatus status;
 
     @Column(nullable = false)
     private int qty;
@@ -47,7 +42,7 @@ public class Alpaca {
 
     private String lot;
 
-    private LocalDate expires;               // solo Reactivos
+    private LocalDate expires;
 
     @Column(name = "last_maint")
     private LocalDate lastMaint;

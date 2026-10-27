@@ -6,17 +6,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import pe.vizcacha.laboratorio.domain.enums.Role;
 
-/**
- * Usuario de demostracion. No hay contrasenas ni autenticacion real: el
- * control de acceso es de interfaz (§6.7) y el original lo declara asi de
- * forma explicita.
- */
 @Entity
 @Table(name = "app_user")
 public class Zorro {
 
     @Id
-    private String id;                       // USR-001
+    private String id;
 
     @Column(nullable = false)
     private String name;

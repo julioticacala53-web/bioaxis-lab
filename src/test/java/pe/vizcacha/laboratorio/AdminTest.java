@@ -22,10 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Entregable de la Fase 6: catalogo, usuarios, configuracion y los 6
- * reportes de §9.12, con sus cifras verificadas contra la semilla.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -36,18 +32,10 @@ class AdminTest {
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
 
-    // ------------------------------------------------------------ utilidades
-
     private JsonNode getJson(String url) throws Exception {
         return leer(get(url));
     }
 
-    /**
-     * Los parametros van por param() y no incrustados en la URL: con una
-     * query string ya codificada, MockMvc no convierte el "+" de
-     * URLEncoder en espacio, asi que "Esta+semana" no coincide con ningun
-     * rango y el reporte cae silenciosamente al de actividad.
-     */
     private JsonNode leer(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder peticion)
             throws Exception {
         byte[] cuerpo = mvc.perform(peticion).andExpect(status().isOk())
@@ -77,7 +65,6 @@ class AdminTest {
         return leer(get("/api/reports").param("type", tipo).param("range", rango));
     }
 
-    /** El valor de la columna Cantidad del indicador pedido. */
     private String indicador(JsonNode reporte, String nombre) {
         for (JsonNode fila : reporte.get("rows")) {
             if (fila.get(0).asText().equals(nombre)) {
@@ -104,8 +91,6 @@ class AdminTest {
         return e;
     }
 
-    // ------------------------------------------------- catalogo §6.4.11
-
     @Test
     void elExamenNuevoTomaElSiguienteCorrelativoYQuedaDisponible() throws Exception {
         String id = postOkId("/api/exams", examenNuevo());
@@ -124,7 +109,7 @@ class AdminTest {
         assertThat(nuevo).isNotNull();
         assertThat(nuevo.get("name").asText()).isEqualTo("Hemoglobina glicosilada");
         assertThat(nuevo.get("format").asText()).isEqualTo("glucose");
-        // Depende de EQ-002 y REA-003, los dos sanos: sale disponible.
+
         assertThat(nuevo.get("available").asBoolean()).isTrue();
     }
 
@@ -149,8 +134,6 @@ class AdminTest {
             }
         }
     }
-
-    // --------------------------------------------------- usuarios y config
 
     @Test
     void elTemaSeGuardaEnLaBaseYSoloAdmiteLosTres() throws Exception {
@@ -192,8 +175,6 @@ class AdminTest {
         assertThat(db.get("audit").get(0).get("record").asText()).isEqualTo("Alertas");
     }
 
-    // --------------------------------------------------- los 6 reportes
-
     @Test
     void elReporteDeActividadDeHoyCuadraConLaSemilla() throws Exception {
         JsonNode r = reporte(ReportService.ACTIVIDAD, ReportService.HOY);
@@ -202,7 +183,6 @@ class AdminTest {
         assertThat(r.get("columns").get(0).asText()).isEqualTo("Indicador");
         assertThat(r.get("rows")).hasSize(6);
 
-        // Los 5 pacientes de la semilla se registraron el 20, no hoy.
         assertThat(indicador(r, "Pacientes registrados")).isEqualTo("0");
         assertThat(indicador(r, "Solicitudes registradas")).isEqualTo("5");
         assertThat(indicador(r, "Exámenes realizados")).isEqualTo("5");
@@ -216,13 +196,13 @@ class AdminTest {
         JsonNode semana = reporte(ReportService.ACTIVIDAD, ReportService.ESTA_SEMANA);
         assertThat(semana.get("from").asText()).isEqualTo("2026-09-21");
         assertThat(semana.get("to").asText()).isEqualTo("2026-09-24");
-        // 12 de hoy + 6 del 21 + 8 del 22 + 9 del 23
+
         assertThat(indicador(semana, "Solicitudes registradas")).isEqualTo("28");
 
         JsonNode mes = reporte(ReportService.ACTIVIDAD, ReportService.ESTE_MES);
         assertThat(mes.get("from").asText()).isEqualTo("2026-09-01");
         assertThat(indicador(mes, "Solicitudes registradas")).isEqualTo("35");
-        // Ahora si entran: la semilla los crea el 2026-09-20.
+
         assertThat(indicador(mes, "Pacientes registrados")).isEqualTo("5");
     }
 
@@ -236,12 +216,10 @@ class AdminTest {
 
         assertThat(r.get("from").asText()).isEqualTo("2026-09-18");
         assertThat(r.get("to").asText()).isEqualTo("2026-09-19");
-        // 3 del dia 18 y 4 del 19
+
         assertThat(indicador(r, "Solicitudes registradas")).isEqualTo("7");
     }
 
-    /** No esta ordenado por cantidad, a pesar del nombre: va en orden de
-     *  catalogo. Asi lo hace el original. */
     @Test
     void elReporteDeExamenesMasSolicitadosVaEnOrdenDeCatalogo() throws Exception {
         JsonNode r = reporte(ReportService.MAS_SOLICITADOS, ReportService.HOY);
@@ -251,20 +229,19 @@ class AdminTest {
         assertThat(r.get("rows").get(0).get(0).asText()).isEqualTo("Hemograma completo");
         assertThat(r.get("rows").get(0).get(2).asText()).isEqualTo("5");
         assertThat(r.get("rows").get(1).get(2).asText()).isEqualTo("5");
-        assertThat(r.get("rows").get(2).get(2).asText()).isEqualTo("1");   // EX-003
-        assertThat(r.get("rows").get(3).get(2).asText()).isEqualTo("1");   // EX-004
-        assertThat(r.get("rows").get(4).get(2).asText()).isEqualTo("0");   // EX-005
+        assertThat(r.get("rows").get(2).get(2).asText()).isEqualTo("1");
+        assertThat(r.get("rows").get(3).get(2).asText()).isEqualTo("1");
+        assertThat(r.get("rows").get(4).get(2).asText()).isEqualTo("0");
     }
 
     @Test
     void elReporteDeInventarioExcluyeLosEquipos() throws Exception {
         JsonNode r = reporte(ReportService.INVENTARIO, ReportService.HOY);
 
-        // 6 reactivos + 7 materiales; los 5 equipos no tienen stock.
         assertThat(r.get("rows")).hasSize(13);
         assertThat(r.get("rows").get(0).get(0).asText()).isEqualTo("Reactivo hematológico");
         assertThat(r.get("rows").get(0).get(2).asText()).isEqualTo("85 pruebas");
-        assertThat(r.get("rows").get(1).get(3).asText()).isEqualTo("Stock bajo");   // REA-002
+        assertThat(r.get("rows").get(1).get(3).asText()).isEqualTo("Stock bajo");
     }
 
     @Test
@@ -278,13 +255,9 @@ class AdminTest {
         assertThat(r.get("rows").get(0).get(3).asText()).isEqualTo("En proceso");
     }
 
-    /**
-     * Los movimientos salen de la auditoria y solo cuentan las acciones con
-     * "retirado", "ajustado" o "fisico": una entrada de stock no aparece.
-     */
     @Test
     void elReporteDeConsumoLeeLaAuditoriaYExcluyeLasEntradas() throws Exception {
-        // Con la semilla no hay movimientos todavia.
+
         assertThat(reporte(ReportService.CONSUMO_REACTIVOS, ReportService.HOY).get("rows"))
                 .isEmpty();
 
@@ -302,8 +275,6 @@ class AdminTest {
         assertThat(r.get("rows").get(0).get(3).asText()).isEqualTo("Responsable del laboratorio");
     }
 
-    /** Un ajuste de inventario aparece en los DOS reportes de consumo, no
-     *  solo en el de su familia. Es lo que hace el original. */
     @Test
     void elAjusteDeInventarioApareceEnLosDosReportesDeConsumo() throws Exception {
         Map<String, Object> form = new LinkedHashMap<>();

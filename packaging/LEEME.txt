@@ -56,8 +56,7 @@ SI WINDOWS AVISA AL ABRIRLO
 ===========================================================================
 
 Windows SmartScreen puede avisar de que es una aplicacion desconocida. Es
-normal: el ejecutable no esta firmado digitalmente, porque firmarlo cuesta
-dinero y esto es un proyecto academico.
+normal: el ejecutable no esta firmado con un certificado digital comercial.
 
   Mas informacion  ->  Ejecutar de todas formas
 

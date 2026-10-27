@@ -1,29 +1,3 @@
-/**
- * El campo de fecha de la aplicación: se escribe con el teclado y se elige
- * con un calendario.
- *
- * Por qué no se usa `<input type="date">`: el WebView de JavaFX, que es la
- * ventana de escritorio, **no lo implementa**. Lo degrada a un campo de
- * texto pelado, sin calendario y sin validación: aceptaba "fsfs" y mandaba
- * al backend lo que fuera, que respondía "Fecha con formato no válido".
- * Comprobado en el propio motor: `input.type` se queda en "text".
- *
- * Así que el campo se dibuja entero aquí, con dos formas de rellenarlo:
- *
- *  - **Tecleando**: solo dígitos, las barras las pone la máscara sola.
- *  - **Con el calendario**: se abre al pulsar el campo, con mes y año en dos
- *    listas para no tener que pasar cuarenta hojas al buscar un nacimiento.
- *
- * `InputFechaHora` es el mismo campo con la hora pegada detrás, para la toma
- * de una muestra. El WebView tampoco implementa `<input type="datetime-local">`
- * y lo dejaba en crudo: se veía "2026-10-22T21:30" en el formulario.
- *
- * Hacia fuera siempre vale lo mismo: el formulario recibe la fecha en ISO
- * por un campo oculto. El calendario va en un portal con posición fija
- * porque los modales recortan, y no hay ningún envoltorio alrededor del
- * campo: los selectores `.field>input` y `.table-toolbar>input` son de hijo
- * directo y un `<div>` de más los rompería todos.
- */
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { TODAY, dosDigitos } from "./data"
@@ -37,20 +11,17 @@ const MESES = [
 ]
 const INICIALES = ["L", "M", "X", "J", "V", "S", "D"]
 
-/** "2001-02-05" -> "05/02/2001". Cualquier otra cosa, cadena vacía. */
 const aTexto = (iso: string) => {
   const m = ISO.exec(iso || "")
   return m ? `${m[3]}/${m[2]}/${m[1]}` : ""
 }
 
-/** "05/02/2001" -> "2001-02-05". Vacío si ese día no existe. */
 const aIso = (texto: string) => {
   const m = VISIBLE.exec(texto)
   if (!m) return ""
   const [, dia, mes, anio] = m
   const f = new Date(Number(anio), Number(mes) - 1, Number(dia))
-  // El 31 de febrero no existe, pero Date lo acepta y se desborda al mes
-  // siguiente sin avisar: hay que comprobar que salió lo que entró.
+
   const real =
     f.getFullYear() === Number(anio) &&
     f.getMonth() === Number(mes) - 1 &&
@@ -58,10 +29,9 @@ const aIso = (texto: string) => {
   return real ? `${anio}-${mes}-${dia}` : ""
 }
 
-/** Deja solo dígitos y va colocando las barras según se escribe. */
 const enmascarar = (entrada: string) => {
   const iso = ISO.exec(entrada.trim())
-  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}` // pegado en formato ISO
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`
   const d = entrada.replace(/\D/g, "").slice(0, 8)
   if (d.length <= 2) return d
   if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`
@@ -72,13 +42,11 @@ const ISO_HORA = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/
 const VISIBLE_HORA = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/
 const HHMM = /^(\d{2}):(\d{2})$/
 
-/** "2026-10-22T21:30" -> "22/10/2026 21:30". */
 const aTextoHora = (iso: string) => {
   const m = ISO_HORA.exec(iso || "")
   return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}` : ""
 }
 
-/** "22/10/2026 21:30" -> "2026-10-22T21:30". Vacío si el día o la hora no existen. */
 const aIsoHora = (texto: string) => {
   const m = VISIBLE_HORA.exec(texto)
   if (!m) return ""
@@ -87,7 +55,6 @@ const aIsoHora = (texto: string) => {
   return `${dia}T${m[4]}:${m[5]}`
 }
 
-/** Igual que `enmascarar`, con la barra, el espacio y los dos puntos. */
 const enmascararHora = (entrada: string) => {
   const iso = ISO_HORA.exec(entrada.trim())
   if (iso) return `${iso[3]}/${iso[2]}/${iso[1]} ${iso[4]}:${iso[5]}`
@@ -100,7 +67,6 @@ const enmascararHora = (entrada: string) => {
   return texto
 }
 
-/** La hora del equipo, "21:30". */
 const ahora = () => {
   const d = new Date()
   return `${dosDigitos(d.getHours())}:${dosDigitos(d.getMinutes())}`
@@ -113,9 +79,9 @@ const partes = (iso: string) => {
 
 type Props = {
   name?: string
-  /** Valor ISO, modo controlado. */
+
   value?: string
-  /** Valor ISO inicial, modo no controlado. */
+
   defaultValue?: string
   min?: string
   max?: string
@@ -140,18 +106,13 @@ export function InputFecha({
   const campo = useRef<HTMLInputElement>(null)
   const iso = aIso(texto)
 
-  // Sincroniza cuando el valor llega de fuera: al limpiar un filtro, por
-  // ejemplo. No pisa lo que se está escribiendo porque solo actúa si el ISO
-  // de fuera es distinto del que ya representa el texto del campo.
   useEffect(() => {
     if (value !== undefined && value !== iso) setTexto(aTexto(value))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   const error = (() => {
     if (!texto) return required ? "Completa la fecha." : ""
-    // Separar los dos casos importa: "31/02/2001" está bien escrito, lo que
-    // pasa es que ese día no existe. Decir "escribe dd/mm/aaaa" ahí despista.
+
     if (!VISIBLE.test(texto)) return "Escribe la fecha como dd/mm/aaaa."
     if (!iso) return "Ese día no existe en el calendario."
     if (max && iso > max)
@@ -163,15 +124,10 @@ export function InputFecha({
     return ""
   })()
 
-  // Sin esto el formulario se enviaría con una fecha imposible. El WebView
-  // puede no dibujar el globo de aviso del navegador, así que el mensaje se
-  // pinta además debajo del campo.
   useEffect(() => {
     campo.current?.setCustomValidity(error)
   }, [error])
 
-  // Mientras se escribe no se regaña: el aviso aparece al completar los diez
-  // caracteres o al intentar guardar.
   const avisar = error !== "" && (intentado || texto.length === 10)
 
   const fijar = (nuevo: string) => {
@@ -198,8 +154,7 @@ export function InputFecha({
         onInvalid={() => setIntentado(true)}
         onClick={() => setAbierto(true)}
         onKeyDown={(e) => {
-          // Flecha abajo abre el calendario, como en cualquier desplegable:
-          // sin esto, quien no use el ratón no puede llegar a él.
+
           if (e.key === "ArrowDown" && !abierto) {
             e.preventDefault()
             setAbierto(true)
@@ -210,7 +165,6 @@ export function InputFecha({
         }}
         onChange={(e) => fijar(enmascarar(e.target.value))}
       />
-      {/* Lo que viaja en el formulario es siempre ISO. */}
       {name && <input type="hidden" name={name} value={iso} />}
       {avisar && <small className="campo-error">{error}</small>}
       {abierto && (
@@ -231,14 +185,6 @@ export function InputFecha({
   )
 }
 
-/**
- * Fecha y hora en un solo campo: "dd/mm/aaaa hh:mm".
- *
- * El calendario es el mismo; lo que cambia es que elegir un día NO cierra el
- * panel, porque todavía falta la hora, y que debajo de los días aparecen dos
- * listas -- hora y minutos -- y un botón Listo. Quien prefiera teclear escribe
- * los doce dígitos del tirón y ni lo abre.
- */
 export function InputFechaHora({
   name,
   defaultValue,
@@ -253,7 +199,6 @@ export function InputFechaHora({
   const campo = useRef<HTMLInputElement>(null)
   const iso = aIsoHora(texto)
 
-  // Las dos mitades del texto, para el calendario y para las listas de hora.
   const trozos = VISIBLE_HORA.exec(texto)
   const diaIso = trozos ? aIso(`${trozos[1]}/${trozos[2]}/${trozos[3]}`) : ""
   const hora = trozos && +trozos[4] <= 23 && +trozos[5] <= 59
@@ -323,7 +268,7 @@ export function InputFechaHora({
           min={min?.slice(0, 10)}
           max={max?.slice(0, 10)}
           onElegir={(elegido) => {
-            // Borrar sí cierra: ya no queda nada que ajustar.
+
             if (!elegido) {
               fijar("")
               setAbierto(false)
@@ -361,7 +306,7 @@ function Calendario({
   iso: string
   min?: string
   max?: string
-  /** Solo en el campo de fecha y hora: la franja de hora y el botón Listo. */
+
   hora?: {
     valor: string
     onHora: (hhmm: string) => void
@@ -374,15 +319,12 @@ function Calendario({
   const puesto = partes(iso)
   const [mes, setMes] = useState(puesto ? puesto.mes : hoy.mes)
   const [anio, setAnio] = useState(puesto ? puesto.anio : hoy.anio)
-  // Dos vistas en el mismo panel: los dias del mes y la rejilla de años.
-  // Una lista desplegable con ciento veinte años no se puede recorrer.
+
   const [vista, setVista] = useState<"dias" | "anios">("dias")
   const [decada, setDecada] = useState(anio - (anio % 12))
   const panel = useRef<HTMLDivElement>(null)
   const [sitio, setSitio] = useState({ top: -9999, left: 0 })
 
-  // Posición fija calculada a mano: dentro de un modal, un panel absoluto lo
-  // recorta el contenedor que hace scroll. Si no cabe debajo, va encima.
   useLayoutEffect(() => {
     const caja = ancla.current?.getBoundingClientRect()
     const alto = panel.current?.offsetHeight ?? 300
@@ -394,23 +336,19 @@ function Calendario({
     })
   }, [ancla, mes, anio, vista, hora?.valor])
 
-  // Se cierra al pulsar fuera, al soltar Escape o al desplazar la página,
-  // que es cuando el panel dejaría de estar donde le toca.
   useEffect(() => {
     const fuera = (e: MouseEvent) => {
       const donde = e.target as HTMLElement | null
       if (
         !panel.current?.contains(donde as Node) &&
         !ancla.current?.contains(donde as Node) &&
-        // La lista del mes y la del año viven en su propio portal, fuera del
-        // panel: sin esta salvedad, elegir un mes cerraba el calendario.
+
         !donde?.closest?.(".desplegable")
       )
         onCerrar()
     }
     const tecla = (e: KeyboardEvent) => e.key === "Escape" && onCerrar()
-    // Desplazar la pagina descuelga el panel; desplazar la lista del mes o la
-    // del año, que se recorren solas hasta el valor vigente, no.
+
     const alDesplazar = (e: Event) => {
       if ((e.target as HTMLElement)?.closest?.(".desplegable")) return
       onCerrar()
@@ -427,7 +365,7 @@ function Calendario({
 
   const anioMin = min ? +min.slice(0, 4) : hoy.anio - 120
   const anioMax = max ? +max.slice(0, 4) : hoy.anio + 20
-  const hueco = (new Date(anio, mes, 1).getDay() + 6) % 7 // lunes primero
+  const hueco = (new Date(anio, mes, 1).getDay() + 6) % 7
   const total = new Date(anio, mes + 1, 0).getDate()
   const celdas: (number | null)[] = [
     ...Array<null>(hueco).fill(null),

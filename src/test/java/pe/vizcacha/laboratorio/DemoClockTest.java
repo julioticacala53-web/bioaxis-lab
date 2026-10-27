@@ -17,7 +17,6 @@ class DemoClockTest {
         assertThat(clock.todayIso()).isEqualTo("2026-09-24");
     }
 
-    /** Fecha congelada + hora real: es lo que hace timestamp() del original. */
     @Test
     void laMarcaDeTiempoUsaLaFechaCongeladaYLaHoraReal() {
         assertThat(clock.timestamp().toLocalDate()).isEqualTo(LocalDate.of(2026, 9, 24));

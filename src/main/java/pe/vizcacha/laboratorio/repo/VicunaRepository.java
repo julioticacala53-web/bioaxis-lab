@@ -13,7 +13,6 @@ public interface VicunaRepository extends JpaRepository<Vicuna, String> {
 
     List<Vicuna> findByPatientId(String patientId);
 
-    /** Regla §6.4.3: un examen no puede tener dos muestras en la misma solicitud. */
     boolean existsByRequestIdAndExamId(String requestId, String examId);
 
     long countByState(VicunaState state);

@@ -31,7 +31,6 @@ public class SettingsController {
         return ApiResponses.withRecord(snapshots.snapshot(), "General");
     }
 
-    /** Cambia la carpeta donde se guardan los PDF y los .xlsx. */
     @PostMapping("/export-dir")
     public ResponseEntity<DatabaseDto> exportDir(@RequestBody ExportDirForm form) {
         settings.setExportDir(form.path());

@@ -10,18 +10,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Registro de una compra con varias lineas.
- *
- * Es la entrada masiva de lo que llega al almacen. Comparte forma con
- * {@link InventoryCountService}: solo cuentan las lineas rellenadas, se
- * valida todo ANTES de tocar nada y cada linea deja su propia entrada de
- * auditoria, con el proveedor y el documento para poder rastrearla.
- *
- * Diferencia importante con el inventario fisico: alli la cantidad escrita
- * SUSTITUYE al stock, porque es lo que hay en la estanteria; aqui se SUMA,
- * porque es lo que acaba de llegar.
- */
 @Service
 public class PurchaseService {
 

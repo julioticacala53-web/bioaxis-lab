@@ -1,6 +1,5 @@
 package pe.vizcacha.laboratorio.domain.enums;
 
-/** Estado de un mantenimiento. "En proceso" es el que bloquea el equipo (§6.4.9). */
 public enum TapirState implements LabeledEnum {
 
     PROGRAMADO("Programado"),

@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** Fila unica: el esquema la fija con CHECK (id = 1). */
 @Entity
 @Table(name = "settings")
 public class Settings {

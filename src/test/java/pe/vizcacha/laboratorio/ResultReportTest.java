@@ -18,11 +18,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * El informe imprimible de un resultado publicado.
- *
- * Sustituye a la impresion simulada del original, que solo mostraba un toast.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 class ResultReportTest {
@@ -30,7 +25,6 @@ class ResultReportTest {
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
 
-    /** MUE-2026-000006 es un hemograma publicado de la semilla. */
     @Test
     void armaElInformeDeUnResultadoPublicado() throws Exception {
         mvc.perform(get("/api/samples/MUE-2026-000006/report"))
@@ -41,7 +35,7 @@ class ResultReportTest {
                 .andExpect(jsonPath("$.examName").value("Hemograma completo"))
                 .andExpect(jsonPath("$.sampleType").value("Sangre venosa"))
                 .andExpect(jsonPath("$.lab").value("Laboratorio clínico"))
-                // Los 9 parametros del hemograma, en orden de formato.
+
                 .andExpect(jsonPath("$.rows", hasSize(9)))
                 .andExpect(jsonPath("$.rows[0].name").value("Hemoglobina"))
                 .andExpect(jsonPath("$.rows[0].value").value("13.8"))
@@ -50,7 +44,6 @@ class ResultReportTest {
                 .andExpect(jsonPath("$.rows[0].outOfRange").value(false));
     }
 
-    /** Las firmas salen de la trazabilidad, no de un campo suelto. */
     @Test
     void lasFirmasSalenDeLaTrazabilidad() throws Exception {
         mvc.perform(get("/api/samples/MUE-2026-000006/report"))
@@ -60,17 +53,14 @@ class ResultReportTest {
                 .andExpect(jsonPath("$.publishedAt").isNotEmpty());
     }
 
-    /** §15: no se muestran valores de resultados que no esten publicados,
-     *  asi que tampoco se imprimen. */
     @Test
     void noSeImprimeUnResultadoQueNoEstaPublicado() throws Exception {
-        // MUE-2026-000001 esta RECIBIDA
+
         mvc.perform(get("/api/samples/MUE-2026-000001/report"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error")
                         .value("Solo se puede imprimir un resultado publicado."));
 
-        // MUE-2026-000003 esta EN VALIDACIÓN: tiene valores, pero no publicados
         mvc.perform(get("/api/samples/MUE-2026-000003/report"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error")

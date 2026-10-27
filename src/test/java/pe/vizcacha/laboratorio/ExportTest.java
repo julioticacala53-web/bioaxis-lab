@@ -23,13 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Exportaciones REALES a PDF y Excel. Es una mejora sobre el original, que
- * solo mostraba un toast diciendo "simulada".
- *
- * Sin transaccion a proposito: estos tests escriben archivos de verdad y los
- * leen de vuelta.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 class ExportTest {
@@ -60,12 +53,11 @@ class ExportTest {
                 .endsWith(".pdf");
 
         byte[] bytes = Files.readAllBytes(archivo);
-        // Firma de un PDF valido.
+
         assertThat(new String(bytes, 0, 5, StandardCharsets.ISO_8859_1)).isEqualTo("%PDF-");
         assertThat(r.get("bytes").asLong()).isGreaterThan(1000L);
     }
 
-    /** El nombre del archivo viaja a Windows: sin tildes ni espacios. */
     @Test
     void elNombreDelArchivoNoLlevaTildesNiEspacios() throws Exception {
         JsonNode r = exportar("Exámenes más solicitados", "Hoy", "pdf");
@@ -89,8 +81,6 @@ class ExportTest {
             Sheet hoja = libro.getSheetAt(0);
             assertThat(hoja.getSheetName()).isEqualTo("Inventario");
 
-            // Fila 0 la marca, fila 1 los metadatos, fila 2 en blanco,
-            // fila 3 los encabezados.
             assertThat(hoja.getRow(0).getCell(0).getStringCellValue())
                     .contains("Laboratorio clínico");
             assertThat(hoja.getRow(1).getCell(0).getStringCellValue())
@@ -103,13 +93,11 @@ class ExportTest {
             assertThat(encabezados.getCell(2).getStringCellValue()).isEqualTo("Stock actual");
             assertThat(encabezados.getCell(3).getStringCellValue()).isEqualTo("Estado");
 
-            // Primera fila de datos: el reactivo hematologico, con tilde.
             Row primera = hoja.getRow(4);
             assertThat(primera.getCell(0).getStringCellValue())
                     .isEqualTo("Reactivo hematológico");
             assertThat(primera.getCell(2).getStringCellValue()).isEqualTo("85 pruebas");
 
-            // 13 recursos con stock + 4 filas de cabecera = ultima fila 16
             assertThat(hoja.getRow(16).getCell(0).getStringCellValue())
                     .isEqualTo("Puntas de micropipeta");
         }
@@ -117,7 +105,7 @@ class ExportTest {
 
     @Test
     void exportaUnReporteVacioSinRomperse() throws Exception {
-        // Sin movimientos todavia, el consumo no tiene filas.
+
         JsonNode r = exportar("Consumo de reactivos", "Hoy", "pdf");
 
         assertThat(Path.of(r.get("path").asText())).exists();

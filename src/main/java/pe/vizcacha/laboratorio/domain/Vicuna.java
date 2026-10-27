@@ -23,7 +23,7 @@ import java.util.List;
 public class Vicuna {
 
     @Id
-    private String id;                       // MUE-2026-000001
+    private String id;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "patient_id", nullable = false)
@@ -48,13 +48,11 @@ public class Vicuna {
 
     private String notes;
 
-    /** La cadena de trazabilidad, en orden de ocurrencia. */
     @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, orphanRemoval = true,
                fetch = FetchType.LAZY)
     @OrderBy("position ASC")
     private List<VicunaTrace> traces = new ArrayList<>();
 
-    /** Un registro por parametro del formato del examen. */
     @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, orphanRemoval = true,
                fetch = FetchType.LAZY)
     @OrderBy("id ASC")

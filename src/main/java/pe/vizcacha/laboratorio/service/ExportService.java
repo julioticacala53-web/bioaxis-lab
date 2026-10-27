@@ -40,31 +40,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Exportaciones REALES a PDF y Excel.
- *
- * Esto es una mejora sobre el original, pedida por el autor: el prototipo
- * solo mostraba un toast que decia "simulada". Los tres textos del Anexo A
- * que lo anunciaban dejan de ser ciertos y hay que reescribirlos en el
- * frontend.
- *
- * El archivo se escribe en disco y se devuelve su ruta, en vez de servirlo
- * por HTTP: el WebView de JavaFX no tiene gestor de descargas y un enlace
- * fallaria en silencio en la aplicacion empaquetada. La carpeta es relativa
- * al directorio de trabajo, asi que en el paquete portatil queda en el USB,
- * junto al ejecutable y a datos/.
- */
 @Service
 public class ExportService {
 
     public static final String PDF = "pdf";
     public static final String XLSX = "xlsx";
 
-    // La paleta de la aplicacion, para que el documento se reconozca como suyo.
     private static final Color FONDO_CABECERA = new Color(0x27, 0x33, 0x35);
     private static final Color TURQUESA = new Color(0x6f, 0x9e, 0x93);
     private static final Color GRIS_SUAVE = new Color(0xf2, 0xf6, 0xf5);
-    /** Turquesa oscurecido: el de pantalla no se lee sobre papel blanco. */
+
     private static final Color TURQUESA_OSCURO = new Color(0x35, 0x68, 0x5f);
     private static final Color AMBAR = new Color(0x8a, 0x61, 0x00);
 
@@ -84,13 +69,6 @@ public class ExportService {
         this.exportDirPorDefecto = exportDir;
     }
 
-    /**
-     * Donde se escriben los archivos.
-     *
-     * Se consulta en cada exportacion, no una vez al arrancar: el usuario
-     * puede cambiar la carpeta desde Configuracion y lo normal es que espere
-     * que el siguiente PDF ya salga alli, sin reiniciar nada.
-     */
     public Path carpeta() {
         return Paths.get(preferences.get(
                 pe.vizcacha.laboratorio.domain.Preference.CARPETA_EXPORTACIONES,
@@ -129,18 +107,11 @@ public class ExportService {
             }
             return new ExportResultDto(archivo.getFileName().toString(),
                     archivo.toAbsolutePath().toString(), Files.size(archivo));
-
         } catch (IOException e) {
             throw new BusinessException("No se pudo escribir el archivo: " + e.getMessage());
         }
     }
 
-    /**
-     * El informe imprimible de un resultado publicado, en PDF.
-     *
-     * Comparte formato con los reportes para que todo lo que sale de la
-     * aplicacion se reconozca como suyo.
-     */
     public ExportResultDto exportResult(ResultReportDto informe) {
         return exportResultTo(informe, carpeta().resolve(resultFileName(informe)));
     }
@@ -165,7 +136,6 @@ public class ExportService {
             }
             return new ExportResultDto(archivo.getFileName().toString(),
                     archivo.toAbsolutePath().toString(), Files.size(archivo));
-
         } catch (IOException e) {
             throw new BusinessException("No se pudo escribir el informe: " + e.getMessage());
         }
@@ -191,13 +161,10 @@ public class ExportService {
         doc.close();
     }
 
-    // ------------------------------------------------------- piezas del informe
-
     private Font f(String familia, float tam, Color color) {
         return FontFactory.getFont(familia, tam, color);
     }
 
-    /** Membrete: identidad del laboratorio y número de informe. */
     private PdfPTable encabezado(ResultReportDto r) {
         PdfPTable tabla = new PdfPTable(new float[] {6f, 4f});
         tabla.setWidthPercentage(100);
@@ -225,7 +192,6 @@ public class ExportService {
         numero.addElement(valor);
         tabla.addCell(numero);
 
-        // Regla de la marca bajo el membrete.
         PdfPCell regla = new PdfPCell();
         regla.setColspan(2);
         regla.setFixedHeight(2.4f);
@@ -246,7 +212,6 @@ public class ExportService {
         return titulo;
     }
 
-    /** Paciente a la izquierda, muestra a la derecha, los dos enmarcados. */
     private PdfPTable datosEnDosPaneles(ResultReportDto r) {
         PdfPTable contenedor = new PdfPTable(2);
         contenedor.setWidthPercentage(100);
@@ -296,7 +261,6 @@ public class ExportService {
         return c;
     }
 
-    /** Banda con el area y el examen, como separador de seccion. */
     private PdfPTable bandaDeExamen(ResultReportDto r) {
         PdfPTable banda = new PdfPTable(1);
         banda.setWidthPercentage(100);
@@ -396,7 +360,6 @@ public class ExportService {
         return tabla;
     }
 
-    /** Tres firmas con su linea, como en un informe en papel. */
     private PdfPTable firmas(ResultReportDto r) {
         PdfPTable tabla = new PdfPTable(3);
         tabla.setWidthPercentage(100);
@@ -431,10 +394,6 @@ public class ExportService {
         return tabla;
     }
 
-    /**
-     * Pie de pagina repetido: aviso legal y numeracion. Va como evento de
-     * pagina para que aparezca en todas, no solo al final del flujo.
-     */
     private final class PieDeInforme extends PdfPageEventHelper {
 
         private final ResultReportDto informe;
@@ -476,7 +435,6 @@ public class ExportService {
                 + "." + formato;
     }
 
-    /** Sin tildes ni espacios: el nombre del archivo viaja a Windows. */
     private String slug(String texto) {
         String sinTildes = Normalizer.normalize(texto, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "");
@@ -485,11 +443,8 @@ public class ExportService {
                 .replaceAll("(^-|-$)", "");
     }
 
-    // ------------------------------------------------------------------- PDF
-
     private void writePdf(ReportDto report, String lab, String branch, OutputStream out) {
-        // Horizontal cuando hay 4 columnas o mas: los reportes de consumo
-        // llevan la accion auditada completa y no cabe en vertical.
+
         Document doc = new Document(
                 report.columns().size() >= 4 ? PageSize.A4.rotate() : PageSize.A4,
                 36, 36, 40, 40);
@@ -525,7 +480,7 @@ public class ExportService {
         doc.add(tabla(report));
 
         Paragraph pie = new Paragraph(
-                "Prototipo académico · Información ficticia · "
+                "Documento generado por el Sistema de Gestión de Laboratorio Clínico · "
                         + "No constituye un documento clínico ni un diagnóstico médico.",
                 fuentePie);
         pie.setSpacingBefore(12);
@@ -584,12 +539,10 @@ public class ExportService {
                 : java.time.LocalDate.parse(iso).format(FECHA_ES_PE);
     }
 
-    // ------------------------------------------------------------------ XLSX
-
     private void writeXlsx(ReportDto report, String lab, String branch, OutputStream out)
             throws IOException {
         try (XSSFWorkbook libro = new XSSFWorkbook()) {
-            // El nombre de una hoja no admite mas de 31 caracteres.
+
             String nombreHoja = report.type().length() > 31
                     ? report.type().substring(0, 31)
                     : report.type();
@@ -615,7 +568,7 @@ public class ExportService {
                     + " · Período: " + report.range()
                     + " · del " + fecha(report.from()) + " al " + fecha(report.to()));
 
-            fila++;   // una fila en blanco antes de la tabla
+            fila++;
 
             Row encabezados = hoja.createRow(fila++);
             for (int c = 0; c < report.columns().size(); c++) {
@@ -632,7 +585,7 @@ public class ExportService {
             }
 
             hoja.createRow(fila + 1).createCell(0)
-                    .setCellValue("Prototipo académico · Información ficticia.");
+                    .setCellValue("Documento generado por el Sistema de Gestión de Laboratorio Clínico.");
 
             for (int c = 0; c < report.columns().size(); c++) {
                 hoja.autoSizeColumn(c);

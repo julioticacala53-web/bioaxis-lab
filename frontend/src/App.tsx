@@ -98,9 +98,7 @@ const descriptions: Record<string, string> = {
   Auditoría: "Registro de acciones y trazabilidad de la operación.",
   Configuración: "Personaliza el laboratorio, la apariencia y las preferencias locales.",
 }
-// Fecha y hora del equipo. Solo se usa como valor por defecto del campo de
-// fecha y hora de toma: las marcas de tiempo que se guardan las pone el
-// backend con su propio DemoClock.
+
 const timestamp = () => `${TODAY}T${new Date().toTimeString().slice(0, 8)}`
 const timeLabel = (d: string) => d.slice(11, 16)
 const text = (f: FormData, k: string) => String(f.get(k) || "")
@@ -298,10 +296,9 @@ export default function App() {
   const [purchaseExp, setPurchaseExp] = useState<Record<string, string>>({})
   const [purchaseSearch, setPurchaseSearch] = useState("")
   const [printReport, setPrintReport] = useState<ResultReport | null>(null)
-  // Qué página mira cada lista larga, por nombre de lista.
+
   const [paginas, setPaginas] = useState<Record<string, number>>({})
-  // La persistencia ya no vive aquí: la base SQLite del backend guarda cada
-  // cambio al instante. Esto solo trae el primer snapshot (§11.2).
+
   useEffect(() => {
     api
       .database()
@@ -322,8 +319,6 @@ export default function App() {
     }
   }, [toast])
 
-  // Al cambiar un filtro, la lista de debajo es otra: quedarse en la página
-  // 7 de la anterior no tiene sentido y además suele dejar la tabla vacía.
   useEffect(() => {
     setPaginas({})
   }, [query, filter, category, dateFilter, view])
@@ -347,24 +342,12 @@ export default function App() {
       .catch(() => setArchivoPrevia(null))
   }, [view, archivoAntesDe, snapshot])
 
-  // Todos los hooks quedan por encima de esta línea.
   if (!snapshot) {
     return <Splash error={loadError} />
   }
 
-  // Alias no nulo. Las funciones de página de más abajo son declaraciones
-  // hoisted, así que TypeScript no propaga a sus cuerpos el estrechamiento de
-  // la guarda de arriba; con un const ya tipado como Database sí, y los
-  // cientos de accesos a db del render se quedan igual.
   const db: Database = snapshot
 
-  /**
-   * Corta una lista en bloques de diez y devuelve el que toca mirar.
-   *
-   * La página se recorta contra el total en cada render, así que al filtrar
-   * y quedarse la lista más corta no hace falta reiniciar nada a mano: si
-   * estabas en la 7 y ahora solo hay 2, miras la 2.
-   */
   const POR_PAGINA = 10
   function bloque<T>(clave: string, lista: T[]) {
     const totalPaginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA))
@@ -397,17 +380,7 @@ export default function App() {
         ),
       )
   }
-  /**
-   * Envoltorio de toda mutación (§11.3).
-   *
-   * El backend valida, audita y devuelve el snapshot completo; aquí solo se
-   * hace setDb y se muestra el mensaje si falla. Las reglas y sus textos ya
-   * no viven en el frontend.
-   *
-   * `errorAsToast` es para las transiciones bloqueadas por disponibilidad:
-   * mismo 422, pero el aviso va en un toast y no en el Notice del formulario
-   * (§5.4).
-   */
+
   const call = async (
     action: () => Promise<Mutation>,
     options: {
@@ -466,7 +439,7 @@ export default function App() {
       setCounts({})
     }
     if (type === "purchase") {
-      // Si vienes de Materiales, la compra empieza en Materiales.
+
       setPurchaseKind(view === "Materiales" ? "Materiales" : "Reactivos")
       setPurchaseQty({})
       setPurchaseLot({})
@@ -516,7 +489,7 @@ export default function App() {
   const lowResources = db.resources.filter(
     (r) => r.kind !== "Equipos" && r.qty <= r.min,
   )
-  // Calculadas por el backend (§6.6, §11.4).
+
   const alerts = db.alerts
   const filteredSamples = db.samples.filter((s) => {
     const p = patient(s.patient)
@@ -586,11 +559,7 @@ export default function App() {
       </div>
     )
   }
-  /**
-   * La comprobación de disponibilidad la hace el backend y devuelve un 422
-   * con el motivo; aquí solo se decide que ese aviso va en un toast de
-   * advertencia y no en el Notice de un formulario (§6.4.1).
-   */
+
   const changeSample = (id: string, state: string) => {
     call(() => api.sampleState(id, state), {
       errorAsToast: true,
@@ -2144,9 +2113,7 @@ export default function App() {
               ...(kind === "Reactivos"
                 ? [
                     <span
-                      // Ámbar si vence dentro de 30 días. El umbral estaba
-                      // fijo en "2026-10-24", que era hoy + 30 con la fecha
-                      // congelada; con el reloj real dejaba de avisar.
+
                       className={
                         r.expires < sumarDias(TODAY, 30) ? "warning-text" : ""
                       }
@@ -2267,11 +2234,6 @@ export default function App() {
     )
   }
 
-  /**
-   * Exportación real (§9.12, modificado). El backend escribe el archivo junto
-   * al ejecutable y devuelve su ruta: no es una descarga del navegador porque
-   * el WebView de JavaFX no tiene gestor de descargas.
-   */
   const exportar = (formato: "pdf" | "xlsx") => {
     const desde = reportRange === "Rango personalizado" ? customStart : undefined
     const hasta = reportRange === "Rango personalizado" ? customEnd : undefined
@@ -2297,10 +2259,6 @@ export default function App() {
       )
   }
 
-  /**
-   * Abre la vista previa del informe. Lo arma el backend, que es el mismo
-   * objeto con el que se genera el PDF: lo que se ve es lo que sale.
-   */
   const abrirVistaDeImpresion = (sampleId: string) => {
     api
       .resultReport(sampleId)
@@ -2318,11 +2276,6 @@ export default function App() {
       )
   }
 
-  /**
-   * En el navegador abre el diálogo de impresión. Dentro de la ventana de
-   * escritorio eso no existe, así que el backend genera el PDF y lo abre con
-   * el visor del sistema, que es donde se elige impresora.
-   */
   const imprimir = (sampleId: string) => {
     if (!db.desktop) {
       window.print()
@@ -2413,9 +2366,7 @@ export default function App() {
   function ReportsPage() {
     let start = TODAY,
       end = TODAY
-    // Los mismos rangos que calcula ReportService en Java, para que la tabla
-    // de la pantalla y el PDF exportado digan lo mismo. Estaban fijos en
-    // "2026-09-21" y "2026-09-01", de la época de la fecha congelada.
+
     if (reportRange === "Esta semana") start = lunesDeEstaSemana()
     if (reportRange === "Este mes") start = primerDiaDelMes()
     if (reportRange === "Rango personalizado") {
@@ -3055,11 +3006,6 @@ export default function App() {
     return ConfigPage()
   }
 
-  /**
-   * Las validaciones de DNI ya no están aquí: las hace el backend y devuelve
-   * su mensaje literal (§11.3). Se conservan las del HTML
-   * (pattern, required), que son la primera barrera visual.
-   */
   function savePatient(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
@@ -3100,8 +3046,7 @@ export default function App() {
   }
   function saveRequest(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // Se conserva en el cliente solo para saber si el toast lleva el sufijo
-    // de pendiente; la decisión de aceptar o no la toma el backend.
+
     const bloqueado = chosenExams.some(
       (id) => availability(exam(id), db.resources).length,
     )
@@ -3118,12 +3063,7 @@ export default function App() {
       },
     })
   }
-  /**
-   * El descuento de stock y el recálculo de "pendiente de disponibilidad" los
-   * hace el backend dentro de la misma transacción (§6.4.3). Al terminar se
-   * abre la trazabilidad de la muestra nueva, que es para lo que hace falta
-   * el identificador que viene en la cabecera.
-   */
+
   function saveSample(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
@@ -3146,11 +3086,7 @@ export default function App() {
       },
     )
   }
-  /**
-   * `submit` distingue las dos acciones del formulario: guardar borrador no
-   * mueve el estado de la muestra, enviar a validación sí. Las tres
-   * validaciones de §6.4.4 las hace el backend.
-   */
+
   function saveResult(state: string) {
     const enviando = state === "EN VALIDACIÓN"
 
@@ -3197,10 +3133,7 @@ export default function App() {
       },
     )
   }
-  /**
-   * Toda la cascada sobre el equipo (§6.4.9) la aplica el backend, incluido
-   * el recálculo del equipo anterior si el mantenimiento cambia de equipo.
-   */
+
   function saveMaintenance(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
@@ -3965,10 +3898,7 @@ export default function App() {
                     ),
                     param.unit,
                     <span className="mono">{param.reference}</span>,
-                    // El aviso de fuera de rango NO sustituye a la
-                    // observación, como hacía el original: se muestra encima y
-                    // el campo sigue disponible. Un valor desviado es
-                    // precisamente el que necesita una anotación.
+
                     <div className="obs-cell">
                       {bad && (
                         <span className="warning-text">
@@ -4455,10 +4385,7 @@ export default function App() {
               <Field label="Finalización estimada" required>
                 <InputFecha
                   name="end"
-                  // Una semana por delante. Estaba fija en "2026-09-30", de la
-                  // época de la fecha congelada: con el reloj real caía en el
-                  // pasado y TODO mantenimiento nuevo nacía inválido, con
-                  // "La finalización no puede ser anterior al inicio".
+
                   defaultValue={m?.end || sumarDias(TODAY, 7)}
                   required
                 />
@@ -4538,7 +4465,7 @@ export default function App() {
                 <input value={kind} readOnly />
               </Field>
               <Field label="Marca">
-                <input name="brand" defaultValue={r?.brand || "BioLab Demo"} />
+                <input name="brand" defaultValue={r?.brand || ""} />
               </Field>
               <Field label="Área / Ubicación" required>
                 <input
@@ -4617,9 +4544,7 @@ export default function App() {
                       <Field label="Fecha de vencimiento" required>
                         <InputFecha
                           name="expires"
-                          // Siete meses por delante, como la semilla. Estaba
-                          // fija en "2027-04-30": sigue siendo futuro hoy,
-                          // pero deja de serlo con el tiempo.
+
                           defaultValue={r?.expires || sumarDias(TODAY, 210)}
                           required
                         />
@@ -4710,9 +4635,7 @@ export default function App() {
       )
     }
     if (type === "purchase") {
-      // El tipo y el buscador solo filtran lo que se ve: las cantidades ya
-      // escritas se conservan al cambiar de pestaña, porque una guía de
-      // remisión suele traer reactivos y materiales en el mismo bulto.
+
       const visibles = db.resources
         .filter((r) => r.kind === purchaseKind)
         .filter((r) => matches(purchaseSearch, r.name, r.id, r.lot))
@@ -4830,9 +4753,7 @@ export default function App() {
                 small
                 icon="refresh"
                 onClick={() => {
-                  // El atajo que de verdad ahorra tiempo: casi siempre se
-                  // compra lo que está por debajo del mínimo, y la cantidad
-                  // que se pide es la que hace falta para dejarlo al doble.
+
                   const propuesta = { ...purchaseQty }
                   visibles
                     .filter((r) => r.qty <= r.min)
@@ -4945,11 +4866,7 @@ export default function App() {
                 setFormError("Las cantidades deben ser enteras y no negativas.")
                 return
               }
-              // Las dos comprobaciones de arriba se conservan en el cliente
-              // porque el modal de confirmación va ANTES de guardar: sin
-              // ellas se preguntaría "se actualizarán 0 recursos" y el error
-              // llegaría después. El backend las repite con el mismo texto y
-              // es el que manda. Un ajuste inválido no aplica ninguna línea.
+
               setConfirm({
                 title: "Confirmar ajuste de inventario",
                 message: `Se actualizará el stock de ${changed.length} recursos según el conteo físico. Se registrarán fecha, responsable, diferencias y observaciones en auditoría.`,
@@ -5380,8 +5297,6 @@ export default function App() {
               </Button>
             </div>
           </Modal>
-          {/* La copia que sale por la impresora: colgada de <body>, fuera del
-              modal, para que la página no herede recortes ni posiciones. */}
           {createPortal(
             <div className="print-only">
               <HojaDeInforme r={printReport} />
@@ -5431,15 +5346,14 @@ export default function App() {
 
 function BirthField({ birth }: { birth?: string }) {
   const [value, setValue] = useState(birth || "")
-  // Una fecha en el futuro da una edad negativa. El campo la rechaza, pero
-  // mientras se escribe no hay por qué enseñar "−4 años".
+
   const edad = value ? age({ birth: value } as Puma) : -1
   return (
     <>
       <Field label="Fecha de nacimiento" required>
         <InputFecha
           name="birth"
-          // Cota de cordura: el campo nativo dejaba escribir el año 0001.
+
           min="1900-01-01"
           max={TODAY}
           value={value}
@@ -5457,14 +5371,7 @@ function BirthField({ birth }: { birth?: string }) {
     </>
   )
 }
-/**
- * La hoja del informe, tal como se imprime.
- *
- * Se dibuja dos veces: dentro del modal, para la vista previa, y en un
- * portal colgado de <body> que es el que sale por la impresora. Separarlas
- * evita el problema clásico de imprimir algo anidado en un modal: el
- * contenedor recorta, posiciona y arrastra páginas en blanco.
- */
+
 function HojaDeInforme({ r }: { r: ResultReport }) {
   return (
     <article className="print-sheet">
@@ -5711,14 +5618,9 @@ function VolumeChart({ samples, mode }: {
   samples: Vicuna[]
   mode: string
 }) {
-  // Los siete días que terminan hoy. El original los tenía escritos a mano
-  // ("Vie 18"... "Jue 24") porque vivía con la fecha congelada.
+
   const dias = ultimosSieteDias()
 
-  // La franja del día: 08:00–14:00 mientras la jornada va por la mañana, y se
-  // desplaza para terminar en la hora actual cuando ya pasó de las 14:00. Así
-  // el tramo de "ahora" siempre queda a la vista. El original la tenía fija
-  // en 08:00–14:00 porque vivía congelado a las ocho de la mañana.
   const horaActual = new Date().getHours()
   const primeraHora =
     horaActual < 8 ? Math.max(0, horaActual - 6)
@@ -5733,14 +5635,10 @@ function VolumeChart({ samples, mode }: {
     const hora = primeraHora + i
     const ss = samples.filter((s) => {
       if (mode !== "Hoy") return s.date.slice(0, 10) === dias[i]
-      // Filtrar por día es imprescindible y faltaba: sin esto, una muestra
-      // de la semana pasada tomada a las 08:15 se contaba en el tramo de
-      // las 08:00 de HOY. Con 30 muestras históricas a esa hora, la barra
-      // marcaba 33 cuando el titular decía 13.
+
       if (s.date.slice(0, 10) !== TODAY) return false
       const h = Number(s.date.slice(11, 13))
-      // El último tramo recoge todo lo posterior, para que una muestra
-      // tomada más tarde no desaparezca del gráfico.
+
       return i === 6 ? h >= hora : h === hora
     })
     return [
@@ -5816,8 +5714,7 @@ function VolumeChart({ samples, mode }: {
                 y="177"
                 textAnchor="middle"
                 className={
-                  // En la vista semanal se resalta hoy; en la del día, la
-                  // hora en curso, que no siempre es el último tramo.
+
                   i === (mode === "Hoy" ? horaActual - primeraHora : 6)
                     ? "today-label"
                     : ""

@@ -5,12 +5,6 @@ import pe.vizcacha.laboratorio.config.DemoClock;
 import pe.vizcacha.laboratorio.domain.Alpaca;
 import pe.vizcacha.laboratorio.domain.enums.AlpacaKind;
 
-/**
- * Estado derivado de un recurso (§6.2). No se almacena: se calcula.
- *
- * El orden de las comprobaciones es parte de la regla: vencido gana sobre
- * agotado, y agotado gana sobre stock bajo.
- */
 @Service
 public class AlpacaStatusService {
 

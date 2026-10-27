@@ -18,19 +18,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Arma el informe imprimible de un resultado publicado.
- *
- * El texto del pie no es decorativo: §15 prohibe emitir diagnosticos y exige
- * declarar que los datos son ficticios. Un papel que se parece a un informe
- * clinico tiene que decir con claridad que no lo es.
- */
 @Service
 public class ResultReportService {
 
     private static final String AVISO =
-            "Sistema académico · "
-                    + "Este documento no constituye un informe clínico ni un diagnóstico médico. "
+            "Este documento no constituye un informe clínico ni un diagnóstico médico. "
                     + "Los valores fuera del intervalo de referencia solo señalan una desviación.";
 
     private static final DateTimeFormatter FECHA_HORA =
@@ -119,10 +111,6 @@ public class ResultReportService {
                 AVISO);
     }
 
-    /**
-     * ALTO, BAJO o vacio. Solo tiene sentido en parametros con intervalo:
-     * los de opciones y los de texto libre nunca se marcan.
-     */
     private String flagFor(LlamaParam p, String valor) {
         if (!p.isNumeric() || valor == null || valor.isBlank()) {
             return "";

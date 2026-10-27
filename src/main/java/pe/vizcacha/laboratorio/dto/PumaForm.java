@@ -1,6 +1,5 @@
 package pe.vizcacha.laboratorio.dto;
 
-/** Cuerpo de POST /api/patients. id vacio significa alta nueva. */
 public record PumaForm(
         String id,
         String dni,
