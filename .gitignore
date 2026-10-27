@@ -3,7 +3,6 @@ target/
 frontend/node_modules/
 frontend/dist/
 src/main/resources/static/
-frontend/package-lock.json
 
 # Paquetes de escritorio: se publican como Release, no en el repositorio
 dist/
@@ -19,3 +18,4 @@ exportaciones/
 # Cuaderno de trabajo interno y material de referencia ajeno
 CLAUDE.md
 PushProMaster*.docx
+docs/
