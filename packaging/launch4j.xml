@@ -12,7 +12,7 @@
   <icon>Laboratorio.ico</icon>
 
   <singleInstance>
-    <mutexName>pe.vizcacha.laboratorio</mutexName>
+    <mutexName>pe.vizcacha.vaca</mutexName>
     <windowTitle>Laboratorio cl</windowTitle>
   </singleInstance>
 

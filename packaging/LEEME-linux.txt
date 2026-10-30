@@ -4,7 +4,13 @@ Laboratorio clinico - Sistema de Gestion de Laboratorio Clinico
 COMO SE EJECUTA
 ===========================================================================
 
-  ./bin/Laboratorio
+Entra en la carpeta bin y abre el archivo Laboratorio (doble clic, o clic
+derecho -> Ejecutar). Desde una terminal, dentro de bin:
+
+  ./Laboratorio
+
+Abrelo siempre desde la carpeta bin: los datos se guardan en la carpeta
+desde la que se abre el programa (bin/datos).
 
 No hace falta instalar Java ni nada mas: el runtime viaja dentro de esta
 carpeta.
@@ -18,14 +24,14 @@ DONDE SE GUARDAN TUS DATOS
 
 La aplicacion lo decide sola:
 
-  - Si puede escribir junto al ejecutable, guarda ahi, en datos/. Es el modo
+  - Si puede escribir en la carpeta bin, guarda ahi, en bin/datos/. Es el modo
     portatil: la carpeta entera se puede llevar en un pendrive.
   - Si no puede -- por ejemplo instalada desde el RPM en /opt --, guarda en
     ~/.local/share/Laboratorio/
 
-Para forzar una ruta concreta:
+Para forzar una ruta concreta (desde la carpeta bin):
 
-  JAVA_TOOL_OPTIONS=-Dapp.data-dir=/ruta/que/quieras/datos ./bin/Laboratorio
+  JAVA_TOOL_OPTIONS=-Donagro.babuino-colibri=/ruta/que/quieras/datos ./Laboratorio
 
 Para empezar de cero, cierra el programa y borra la carpeta de datos.
 
@@ -46,9 +52,10 @@ Los informes de resultados publicados se imprimen desde "Vista de impresion",
 que muestra como quedara en papel. Desde ahi:
 
   Imprimir     - abre el dialogo de impresion del sistema (CUPS).
-  Guardar PDF  - deja el archivo en la carpeta de exportaciones.
+  Guardar PDF  - pregunta la carpeta y el nombre del archivo.
 
-Los reportes tambien se exportan a PDF y Excel a esa misma carpeta.
+Los reportes tambien se exportan a PDF y Excel; el programa pregunta
+donde guardarlos.
 
 ===========================================================================
 AVISO

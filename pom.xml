@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>pe.vizcacha.laboratorio</groupId>
+    <groupId>pe.vizcacha.vaca</groupId>
     <artifactId>laboratorio-clinico</artifactId>
     <version>1.0.0</version>
     <name>Laboratorio clinico</name>
@@ -117,10 +117,19 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>pe.vizcacha.laboratorio.DesktopLauncher</mainClass>
+                    <mainClass>pe.vizcacha.vaca.FocaChinchillon</mainClass>
                 </configuration>
             </plugin>
 

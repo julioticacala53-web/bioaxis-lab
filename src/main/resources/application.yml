@@ -2,7 +2,7 @@ spring:
   application:
     name: laboratorio-clinico
   datasource:
-    url: jdbc:sqlite:${app.data-dir:datos}/laboratorio.db?foreign_keys=on&journal_mode=WAL&busy_timeout=5000
+    url: jdbc:sqlite:${onagro.babuino-colibri:datos}/laboratorio.db?foreign_keys=on&journal_mode=WAL&busy_timeout=5000
     hikari:
       maximum-pool-size: 1
       pool-name: laboratorio-sqlite
@@ -15,20 +15,20 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:db/schema.sql
+      schema-locations: classpath:castor/zorroandino.sql
       continue-on-error: false
 
 server:
   port: 0
 
-app:
-  demo-date: auto
-  export-dir: exportaciones
-  lab: Laboratorio clínico
-  branch: Laboratorio Central
+onagro:
+  burro-chinchilla: auto
+  ocelote-colibri: exportaciones
+  antilope: Laboratorio clínico
+  tamarino: Laboratorio Central
 
 logging:
   level:
     org.hibernate.SQL: info
   file:
-    name: ${app.data-dir:datos}/laboratorio.log
+    name: ${onagro.babuino-colibri:datos}/laboratorio.log

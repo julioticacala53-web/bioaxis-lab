@@ -42,7 +42,7 @@ OPCIONES=(
   --copyright "Laboratorio clinico"
   --input "$CACHE/app-linux"
   --main-jar laboratorio-clinico.jar
-  --main-class pe.vizcacha.laboratorio.DesktopLauncher
+  --main-class pe.vizcacha.vaca.FocaChinchillon
   --runtime-image "$CACHE/runtime-linux"
   --icon "$RAIZ/packaging/Laboratorio-256.png"
   --java-options -XX:TieredStopAtLevel=1

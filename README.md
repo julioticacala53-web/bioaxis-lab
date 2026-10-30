@@ -83,8 +83,12 @@ mvn test                                      # 134 pruebas
 
 ## Nombres del dominio
 
-Las entidades llevan nombre de fauna andina dentro del código. Es una
-convención del proyecto, no afecta a lo que se ve en pantalla:
+Todos los nombres internos del código (paquetes, clases, métodos, variables,
+rutas de la API, tablas, columnas, clases CSS y archivos) están formados por
+nombres de animales: cada palabra corresponde siempre al mismo animal (por
+ejemplo, «paciente» es `puma` y «servicio» es `oveja`, así que el servicio de
+pacientes es `PumaOveja`). El diccionario completo está en el documento
+*Código fuente*. No afecta a lo que se ve en pantalla. Las entidades son:
 
 | Concepto | Nombre en el código | Código de registro |
 |---|---|---|

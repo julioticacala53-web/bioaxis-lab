@@ -21,7 +21,7 @@ QUE HAY EN ESTA CARPETA
   app\             La aplicacion y sus librerias.
   runtime\         Java recortado, solo lo que el programa necesita.
   datos\           La base de datos. SE CREA AL PRIMER ARRANQUE.
-  exportaciones\   Los PDF y Excel que generes. Se crea al exportar.
+  exportaciones\   Carpeta propuesta para los PDF y Excel. Se crea al exportar.
 
 IMPORTANTE: hay que copiar la CARPETA ENTERA. Si se copia solo el .exe, no
 funciona, porque busca app\ y runtime\ a su lado.
@@ -47,9 +47,10 @@ Los informes de resultados publicados se imprimen desde el boton
 "Vista de impresion", que muestra como quedara en papel. Desde ahi:
 
   Imprimir     - abre el dialogo de impresion de Windows.
-  Guardar PDF  - deja el archivo en exportaciones\.
+  Guardar PDF  - pregunta la carpeta y el nombre del archivo.
 
-Los reportes tambien se exportan a PDF y Excel a la misma carpeta.
+Los reportes tambien se exportan a PDF y Excel; el programa pregunta
+donde guardarlos.
 
 ===========================================================================
 SI WINDOWS AVISA AL ABRIRLO
