@@ -31,13 +31,15 @@ que el laboratorio puede hacer.
 ## Cómo se ejecuta
 
 **Windows** — copiar la carpeta `Laboratorio` completa y abrir `Laboratorio.exe`.
-No se instala nada. Los datos quedan en `datos\` y las exportaciones en
-`exportaciones\`, dentro de esa misma carpeta: si va en un USB, viaja con él.
+No se instala nada. Los datos quedan en `datos\`, dentro de esa misma
+carpeta: si va en un USB, viaja con él.
 
-**Linux** — `./Laboratorio/bin/Laboratorio`, igual de portátil.
+**Linux** — entrar en `Laboratorio/bin` y abrir `Laboratorio` (doble clic, o
+`./Laboratorio` en una terminal abierta en esa carpeta). Los datos quedan en
+`bin/datos`, igual de portátil.
 
 La primera vez el laboratorio arranca **vacío**. Desde la interfaz no se
-puede borrar nada: en *Configuración → General* está el **respaldo de
+puede vaciar el laboratorio ni borrar la auditoría: en *Configuración → General* está el **respaldo de
 pacientes**, un CSV con cada paciente atendido, sus solicitudes, muestras,
 historial de estados y resultados publicados. Ahí también se escribe el
 nombre del responsable del laboratorio, que firma los informes y queda en la
@@ -48,7 +50,8 @@ programa.
 
 El informe de resultados de cada paciente se guarda en la carpeta que se
 elija al pulsar *Guardar PDF…*: el programa la pregunta cada vez y recuerda
-la última. Los reportes PDF y Excel van a la carpeta de exportaciones.
+la última. Los reportes PDF y Excel también abren la ventana «Guardar como»,
+que empieza en la carpeta de exportaciones.
 
 ## Cómo está hecho
 
@@ -69,12 +72,12 @@ dos implementaciones de lo mismo.
 
 ### Compilar
 
-Necesita **JDK 21** (con 25 falla Hibernate) y Node 20+.
+Necesita **JDK 21** (con 25 falla Hibernate), Maven 3.9+ y Node 20+. El paso
+a paso completo, con capturas, está en el documento *Para ejecutar*.
 
 ```bash
-export JAVA_HOME=$HOME/.jdks/jdk-21.0.12.1+1
-mvn package                                   # interfaz + jar
-java -jar target/laboratorio-clinico-1.0.0.jar --server.port=8099
+mvn package -DskipTests                       # interfaz + jar
+java -jar target/laboratorio-clinico-1.0.0.jar
 
 mvn test                                      # 134 pruebas
 ./packaging/empaquetar-windows.sh             # Laboratorio.exe
@@ -95,10 +98,10 @@ pacientes es `PumaOveja`). El diccionario completo está en el documento
 | Paciente | `Puma` | `PAC-000001` |
 | Solicitud | `Condor` | `SOL-000001` |
 | Muestra | `Vicuna` | `MUE-2026-000001` |
-| Examen | `Llama` | `EX-001` |
-| Equipo | `Alpaca` (familia Equipos) | `EQ-001` |
-| Reactivo | `Alpaca` (familia Reactivos) | `REA-001` |
-| Material | `Alpaca` (familia Materiales) | `MAT-001` |
+| Examen | `Llama` | `EX-000001` |
+| Equipo | `Alpaca` (familia Equipos) | `EQ-000001` |
+| Reactivo | `Alpaca` (familia Reactivos) | `REA-000001` |
+| Material | `Alpaca` (familia Materiales) | `MAT-000001` |
 | Mantenimiento | `Tapir` | `MAN-000001` |
 | Auditoría | `Buho` | `AUD-000001` |
 
@@ -131,6 +134,6 @@ En `docs/` están los tres documentos del proyecto, en Word y en PDF:
 Los paquetes listos para usar están en la pestaña **Releases**:
 
 - `Laboratorio-windows.zip`: descomprimir y abrir `Laboratorio.exe`.
-- `Laboratorio-linux.zip`: descomprimir y abrir `bin/Laboratorio`.
+- `Laboratorio-linux.zip`: descomprimir, entrar en `Laboratorio/bin` y abrir `Laboratorio`.
 
 No necesitan instalar Java ni ningún otro programa.
